@@ -1,0 +1,41 @@
+name: Bug report
+description: Report a reproducible problem in the public beta
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please do not include API keys, credentials, private recordings, or personal data.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Installer version and whether you use CPU or GPU mode.
+      placeholder: v0.2.1-beta, CPU mode
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include the smallest sequence of actions that shows the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Windows version, CPU/GPU, selected model, and relevant error text.

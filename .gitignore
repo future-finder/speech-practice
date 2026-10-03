@@ -1,0 +1,46 @@
+# Dependencies and local state
+node_modules/
+.venv*/
+.pytest_cache/
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+.local/
+
+# Build and packaging outputs
+dist/
+build/
+release/
+release.zip
+*.partial.zip
+*.exe
+*.msi
+*.dmg
+*.AppImage
+
+# Test and local evidence
+.test-results/
+test-results/
+playwright-report/
+docs/evidence/
+*.wav
+*.mp3
+*.m4a
+*.flac
+*.ogg
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+
+# Local model and cache directories
+models/
+**/models/
+.cache/
+.cache-huggingface/
+**/.cache/

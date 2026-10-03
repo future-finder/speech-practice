@@ -1,0 +1,22 @@
+"""Machine-readable capabilities; no promise that BYOK has online permission."""
+CONTRACTS = {
+ 'tencent-asr': {'kind':'asr','implemented':True,'version':'2019-06-14','mode':'SentenceRecognition/16k_en',
+   'languages':['en'],'task_types':['transcription'],'scores':[], 'localization':['word'], 'duration_seconds':60,
+   'audio':'16kHz mono PCM16 WAV','encoded_limit_bytes':3*1024*1024,'request':'HTTPS POST / TC3-HMAC-SHA256',
+   'billing_unit':'request','pricing_source':'https://cloud.tencent.com/document/product/1093/35686',
+   'contract_source':'https://cloud.tencent.com/document/product/1093/35646','online_verified':False},
+ 'tencent': {'kind':'pronunciation','implemented':True,'version':'SOE new / product 1774','mode':'eval_mode=1 / rec_mode=1',
+   'languages':['en'],'task_types':['reference sentence'],'scores':{'PronAccuracy':[0,100],'PronFluency':[0,1],'PronCompletion':[0,1],'SuggestedScore':[0,100]},
+   'localization':['word','phoneme'],'duration_seconds':60,'reference_words':30,'audio':'16kHz mono PCM16 WAV',
+   'request':'WSS one WAV frame then end / HMAC-SHA1','billing_unit':'request','postpaid_reference_cny':.005,
+   'pricing_source':'https://cloud.tencent.com/document/product/1774/107342',
+   'contract_source':'https://cloud.tencent.com/document/product/1774/107497','online_verified':False},
+ 'speechace': {'kind':'pronunciation','implemented':True,'version':'v9','mode':'score-text / Basic',
+   'languages':['en-us','en-gb'],'task_types':['reference sentence'],'scores':{'pronunciation':[0,100]},'localization':['word','phoneme'],
+   'duration_seconds':30,'audio':'mono WAV','request':'HTTPS multipart','billing_unit':'subscription plan / evaluated audio',
+   'contract_source':'https://api-docs.speechace.com/api-reference/score-text',
+   'pricing_source':'https://www.speechace.com/api-plans/','online_verified':False},
+ 'iflytek': {'kind':'pronunciation','implemented':False,'version':'ISE WebSocket candidate','languages':['en'],
+   'task_types':['read_sentence'],'contract_source':'https://www.xfyun.cn/doc/Ise/IseAPI.html',
+   'online_verified':False,'notice':'Candidate only; independent permission/scale/field review required before adapter implementation.'},
+}

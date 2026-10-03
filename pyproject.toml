@@ -1,0 +1,32 @@
+[project]
+name = "speech-practice"
+version = "0.2.1"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn>=0.34,<1",
+  "pydantic>=2.10,<3",
+  "python-multipart>=0.0.20",
+  "numpy>=2,<3",
+  "soundfile>=0.13,<1",
+  "scipy>=1.15,<2",
+  "av>=14,<17",
+  "httpx>=0.28,<1",
+  "keyring>=25,<26",
+  "kokoro-onnx>=0.4,<0.5",
+  "faster-whisper>=1.1,<2",
+  "huggingface-hub>=0.34,<1",
+  "inflect>=7,<8",
+  "pysbd>=0.3.4,<0.4",
+  "psutil>=7,<8",
+  "websockets==15.0.1",
+  "sherpa-onnx==1.13.8",
+  "onnxruntime>=1.28,<2",
+]
+
+[dependency-groups]
+dev = ["pytest>=8,<10", "pyinstaller>=6.12,<7"]
+
+[tool.pytest.ini_options]
+pythonpath = ["backend"]
+testpaths = ["tests"]

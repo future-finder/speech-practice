@@ -1,0 +1,27 @@
+name: Feature request
+description: Suggest a focused improvement for Speech Practice
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please describe the user problem first. Do not include private recordings or credentials.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What would you like to do, and why is the current workflow insufficient?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: Describe the smallest change that would address the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered

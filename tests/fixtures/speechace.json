@@ -1,0 +1,14 @@
+{
+  "status": "success",
+  "text_score": {
+    "text": "Some parents admire famous athletes as strong role models, so they name their children after them.",
+    "word_score_list": [{
+      "word": "Some", "quality_score": 100,
+      "phone_score_list": [
+        {"phone": "s", "quality_score": 100, "extent": [11,26], "sound_most_like": "s"},
+        {"phone": "ah", "quality_score": 99.5, "extent": [26,32], "sound_most_like": "ah"},
+        {"phone": "m", "quality_score": 100, "extent": [32,41], "sound_most_like": "m"}
+      ]
+    }]
+  }
+}
