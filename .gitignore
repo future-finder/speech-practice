@@ -9,6 +9,18 @@ __pycache__/
 !.env.example
 .local/
 
+# Local project instructions and private development records
+/AGENTS.md
+/REFERENCE_SYSTEM.md
+/assets/GENERATION_PROMPTS.md
+/assets/CONVERGENCE_PROMPTS.md
+/docs/BASELINE_ASSETS.md
+/docs/REFERENCE_QA.md
+/docs/VISUAL_CONVERGENCE.md
+/docs/FUNCTIONAL_GAP_REPORT_2026-10-05.md
+/scripts/create-reference-comparison.cjs
+/src/practice-tokens.css
+
 # Build and packaging outputs
 dist/
 build/
