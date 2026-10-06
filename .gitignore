@@ -37,6 +37,14 @@ docs/evidence/
 .DS_Store
 Thumbs.db
 *.log
+*.tsbuildinfo
+
+# Editor temporary files and agent instruction backups
+*.tmp
+*.swp
+*.swo
+*~
+AGENTS.md.backup.*
 
 # Local model and cache directories
 models/

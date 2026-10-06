@@ -60,4 +60,4 @@ flowchart LR
 
 `WhisperProvider` accepts CPU/int8 or CUDA/float16 and a local pinned CT2 directory. GPU requests use the same optional runtime and serial queue as Qwen. Component capability `gpu-asr` prevents silently invoking an old 0.1 GPU runtime for ASR. The worker cache key includes model directory and device, and switching providers releases the previous model.
 
-`FeedbackPanel.tsx` renders available/unavailable scores, provider source, history, bounded issues and a timeline. `segment.ts` calculates context independently of original evidence. `ProviderSettings.tsx` keeps ASR and assessment choices independent. Tests verify these boundaries; performance and human validity remain separate evidence in ITERATION_0.2.md.
+`AnalysisWorkspace.tsx` and `CoachPanel.tsx` render available/unavailable scores, provider source, history, bounded issues and a timeline. `segment.ts` calculates context independently of original evidence. `ProviderSettings.tsx` keeps ASR and assessment choices independent. Tests verify these boundaries; performance and human validity remain separate evidence in ITERATION_0.2.md.
