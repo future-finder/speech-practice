@@ -33,7 +33,7 @@ def create_app(root=None, token=None):
         yield
         jobs.close()
 
-    app = FastAPI(title="Speech Practice", lifespan=lifespan)
+    app = FastAPI(title="Oracy", lifespan=lifespan)
     app.state.store, app.state.jobs, app.state.settings = store, jobs, settings
     app.add_middleware(CORSMiddleware, allow_origins=["http://127.0.0.1:5173", "http://localhost:5173"],
                        allow_methods=["GET", "POST", "PATCH", "DELETE"], allow_headers=["Authorization", "Content-Type"])

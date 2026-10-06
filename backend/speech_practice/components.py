@@ -10,7 +10,7 @@ from pathlib import Path, PurePosixPath
 def install_qwen(settings, archive):
     source = Path(archive)
     if not source.is_file() or source.suffix.lower() != ".zip":
-        raise ValueError("Select a Speech Practice Qwen component ZIP.")
+        raise ValueError("Select a Oracy Qwen component ZIP.")
     staging = settings.root / "components" / "qwen-staging"
     destination = settings.root / "components" / "qwen"
     # Fixed paths, verified to remain inside the app's component directory.

@@ -3,6 +3,17 @@ const { spawn, execFile } = require("node:child_process");
 const path = require("node:path");
 const fs = require("node:fs/promises");
 let backend, connection, win;
+// Preserve the existing profile when changing the display name.
+if (!app.commandLine.getSwitchValue("user-data-dir")) {
+  app.setPath(
+    "userData",
+    path.join(
+      app.getPath("appData"),
+      app.isPackaged ? "Speech Practice" : "speech-practice",
+    ),
+  );
+}
+app.setName("Oracy");
 
 async function startBackend() {
   const root =
@@ -92,6 +103,72 @@ ipcMain.handle("connection", (event) => {
   trusted(event);
   return connection;
 });
+function visualRoot() {
+  return path.join(
+    process.env.SPEECH_DATA_DIR ||
+      path.join(
+        process.env.LOCALAPPDATA || app.getPath("userData"),
+        "speech-practice",
+      ),
+    "appearance",
+  );
+}
+let visualWrites = Promise.resolve();
+ipcMain.handle("visual-preferences", async (event, value) => {
+  trusted(event);
+  const file = path.join(visualRoot(), "preferences.json");
+  if (value === undefined) {
+    await visualWrites;
+    try {
+      return JSON.parse(await fs.readFile(file, "utf8"));
+    } catch (error) {
+      if (error.code === "ENOENT") return null;
+      throw error;
+    }
+  }
+  const serialized = JSON.stringify(value);
+  if (!value || typeof value !== "object" || serialized.length > 8192)
+    throw new Error("Invalid visual preferences");
+  // Serialize and atomically replace preferences during rapid slider changes.
+  const write = visualWrites
+    .catch(() => {})
+    .then(async () => {
+      await fs.mkdir(visualRoot(), { recursive: true });
+      await fs.writeFile(file + ".tmp", serialized, "utf8");
+      await fs.rename(file + ".tmp", file);
+    });
+  visualWrites = write;
+  await write;
+});
+ipcMain.handle("visual-image", async (event, action, id, bytes) => {
+  trusted(event);
+  if (typeof id !== "string" || !/^[a-f0-9-]{36}$/.test(id))
+    throw new Error("Invalid visual image ID");
+  const file = path.join(visualRoot(), id + ".webp");
+  if (action === "get") {
+    try {
+      return new Uint8Array(await fs.readFile(file));
+    } catch (error) {
+      if (error.code === "ENOENT") return null;
+      throw error;
+    }
+  }
+  if (action === "delete") {
+    await fs.rm(file, { force: true });
+    return;
+  }
+  if (
+    action !== "put" ||
+    !(bytes instanceof Uint8Array) ||
+    bytes.length > 8 * 1024 * 1024 ||
+    bytes.length < 12 ||
+    Buffer.from(bytes).toString("ascii", 0, 4) !== "RIFF" ||
+    Buffer.from(bytes).toString("ascii", 8, 12) !== "WEBP"
+  )
+    throw new Error("Invalid visual image");
+  await fs.mkdir(visualRoot(), { recursive: true });
+  await fs.writeFile(file, bytes);
+});
 ipcMain.handle("choose-directory", async (event) => {
   trusted(event);
   const result = await dialog.showOpenDialog(win, {
@@ -103,7 +180,7 @@ ipcMain.handle("choose-runtime", async (event) => {
   trusted(event);
   const result = await dialog.showOpenDialog(win, {
     properties: ["openFile"],
-    filters: [{ name: "Speech Practice component", extensions: ["zip"] }],
+    filters: [{ name: "Oracy component", extensions: ["zip"] }],
   });
   return result.canceled ? null : result.filePaths[0];
 });
@@ -157,8 +234,8 @@ app.whenReady().then(async () => {
       height: 960,
       minWidth: 1050,
       minHeight: 700,
-      backgroundColor: "#f4f1e9",
-      title: "Speech Practice",
+      backgroundColor: "#f3f6fb",
+      title: "Oracy",
       autoHideMenuBar: true,
       webPreferences: {
         preload: path.join(__dirname, "preload.cjs"),
@@ -174,7 +251,7 @@ app.whenReady().then(async () => {
     await win.loadURL(connection.base + "/");
   } catch (error) {
     if (process.env.SPEECH_TEST_HIDDEN === "1") console.error(error.message);
-    else dialog.showErrorBox("Speech Practice", error.message);
+    else dialog.showErrorBox("Oracy", error.message);
     app.quit();
   }
 });

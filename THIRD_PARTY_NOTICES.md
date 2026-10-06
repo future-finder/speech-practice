@@ -1,5 +1,7 @@
 # Third-party components
 
+The optional appearance SVG materials in `public/images/decor/` are original project-authored paths and static texture definitions, covered by the application's MIT license. They are decoration, not generated audio/analysis data. The botanical image retains the generation provenance documented below.
+
 Original application code in this repository is MIT licensed. Third-party
 components retain their own licenses; the MIT license does not override them.
 
@@ -7,6 +9,9 @@ components retain their own licenses; the MIT license does not override them.
 |---|---|---|
 | Electron | https://github.com/electron/electron | MIT, Chromium/Node notices |
 | React | https://github.com/facebook/react | MIT |
+| Source Serif 4 | https://github.com/adobe-fonts/source-serif; @fontsource/source-serif-4 | SIL OFL 1.1 |
+| Source Sans 3 | https://github.com/adobe-fonts/source-sans; @fontsource/source-sans-3 | SIL OFL 1.1 |
+| Noto Sans SC | https://github.com/notofonts/noto-cjk; @fontsource/noto-sans-sc | SIL OFL 1.1 |
 | Kokoro ONNX wrapper | https://github.com/thewh1teagle/kokoro-onnx | MIT |
 | Kokoro model and voice pack | https://huggingface.co/hexgrad/Kokoro-82M | Apache-2.0; check the pinned pack notices |
 | Qwen3-TTS code/model | https://github.com/QwenLM/Qwen3-TTS | Apache-2.0 |
@@ -26,6 +31,9 @@ components retain their own licenses; the MIT license does not override them.
 the exact installed distributions, upstream locations and copied notices.
 Generate them with `scripts/collect_notices.py` in each respective environment.
 Electron's own `LICENSE` and `LICENSES.chromium.html` remain in its distribution.
+The practice prototype self-hosts the selected fonts. Fontsource notices and
+upstream OFL copyright notices are retained in `public/notices/fonts/` and copied
+by Vite into the distributed UI. These font files retain their OFL licenses.
 
 The local installers are preview build artifacts, not an audited public release.
 Before publicly redistributing binaries, finish the corresponding-source and
@@ -46,3 +54,20 @@ includes sherpa-onnx 1.13.8 and its bundled notices; the GPU component reuses th
 existing qwen-tts runtime for both Qwen model sizes.
 
 The optional ASR models use pinned CTranslate2 files from distil-whisper/distil-large-v3.5-ct2 (MIT) and the community large-v3-turbo conversion now published by dropbox-dash (MIT). Weights remain on-demand downloads and are not included in the base installer/source ZIP. The GPU component additionally bundles faster-whisper and CTranslate2; their individual notices are retained in third-party/qwen. The base adds websockets 15.0.1 (BSD-3-Clause, notice retained in third-party/base). Tencent adapters implement the official HTTP/WebSocket contracts; Tencent SDK source inspected for signing is not bundled. hf-mirror is a third-party transport option with the same pinned integrity checks, not an assertion of publisher provenance or domestic-only routing.
+## Practice page landscape
+
+- File: `public/images/practice-mountains.jpg`
+- Photographer: Francisco Gonzalez
+- Title: Mountain filled with mist (Blue Mountain, Lake Arrowhead)
+- Source: https://unsplash.com/photos/mountain-filled-with-mist-jLv3i_x1Ctk
+- License: Unsplash License, https://unsplash.com/license (verified 2026-10-04)
+- Retained historical prototype asset; the redesigned active interface no longer references it.
+- Downloaded at 1600px width. No runtime third-party requests.
+
+## Redesigned workspace botanical image
+
+- File: `public/images/practice-botanical.png`
+- Generated on 2026-10-04 using the built-in `image_gen.imagegen` tool, through the imagegen skill.
+- Used only at the sidebar edge and in empty states. It contains no text or functional information.
+- Generation prompt and provenance are recorded in `docs/frontend-assets.md`.
+- Generated media is not attributed to an external photographer. Fonts retain the OFL notices listed above.

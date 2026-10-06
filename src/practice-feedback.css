@@ -1,0 +1,132 @@
+.pa-feedback {
+  margin-top: 32px;
+}
+.pa-feedback-actions {
+  display: flex;
+  gap: 24px;
+}
+.practice-prototype .pa-text-action {
+  padding-left: 0;
+  padding-right: 0;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  color: var(--pa-green);
+  font-size: 14px;
+}
+.pa-meta {
+  font-size: 14px;
+  color: var(--pa-muted);
+  margin: 8px 0 16px;
+}
+.pa-message {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  font-size: 14px;
+  margin: 20px 0;
+  overflow-wrap: anywhere;
+}
+.pa-error {
+  color: var(--pa-red);
+}
+.pa-feedback h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 24px 0 8px;
+}
+.pa-feedback-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+.pa-feedback-heading label {
+  max-width: 60%;
+}
+.pa-feedback-heading select {
+  max-width: 260px;
+}
+.pa-feedback details {
+  margin-top: 16px;
+}
+.pa-feedback pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 320px;
+  overflow: auto;
+  font-size: 12px;
+  margin-top: 12px;
+}
+.pa-differences {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+.pa-differences button:disabled {
+  opacity: 1;
+}
+.pa-differences .pa-difference {
+  text-decoration: underline;
+  text-decoration-color: var(--pa-red);
+  text-underline-offset: 4px;
+}
+.pa-issue {
+  border-top: 1px solid var(--pa-line);
+}
+.pa-issue:last-child {
+  border-bottom: 1px solid var(--pa-line);
+}
+.practice-prototype .pa-issue-select {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 80px 130px;
+  width: 100%;
+  text-align: left;
+  padding: 12px 0;
+  border-radius: 0;
+}
+.pa-issue-select span:first-child {
+  font-family: var(--pa-font-ui);
+  font-size: 22px;
+}
+.pa-issue-select span:not(:first-child) {
+  color: var(--pa-muted);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.pa-issue-detail {
+  padding: 8px 0 16px;
+  max-width: 650px;
+}
+.pa-issue-detail p {
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+.pa-score {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--pa-line);
+}
+.pa-score small {
+  grid-column: 1 / -1;
+  font-size: 13px;
+  color: var(--pa-muted);
+}
+.pa-job-status > div {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 14px;
+  margin-top: 16px;
+  color: var(--pa-muted);
+}
+.pa-job-status > div[role="alert"] {
+  color: var(--pa-red);
+}
+.practice-prototype :is(button, a, summary) {
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}

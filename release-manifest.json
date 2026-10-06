@@ -1,12 +1,12 @@
 {
-  "version": "0.2.1-beta",
+  "version": "0.2.2-beta",
   "platform": "windows-x64",
   "release_type": "beta",
   "windows_installer": {
-    "filename": "Speech Practice Setup 0.2.1.exe",
-    "size_bytes": 235296513,
-    "sha256": "9005bc1d6994b25ca9376b204caf3e7e8bc778d897379b89000f6ca55264ddd6",
-    "path": "release/Speech Practice Setup 0.2.1.exe"
+    "filename": "Speech Practice Setup 0.2.2.exe",
+    "size_bytes": 323435799,
+    "sha256": "902469e9e0956456af5dd682db0a3ddc3617143de8b44f5c2a2a77ca144e7041",
+    "path": "release/Speech Practice Setup 0.2.2.exe"
   },
   "optional_components": [],
   "models_included": false

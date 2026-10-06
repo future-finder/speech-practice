@@ -7,6 +7,8 @@ declare global {
     desktop?: {
       connection(): Promise<Connection>;
       saveAudio(id: string): Promise<boolean>;
+      visualPreferences(value?: unknown): Promise<unknown>;
+      visualImage(action: "get" | "put" | "delete", id: string, bytes?: Uint8Array): Promise<Uint8Array | null>;
       chooseDirectory(): Promise<string | null>;
       chooseRuntime(): Promise<string | null>;
     };

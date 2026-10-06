@@ -1,1 +1,1 @@
-"""Speech Practice local backend."""
+"""Oracy local backend."""

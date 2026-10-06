@@ -25,10 +25,11 @@ export function ProviderSettings({
   const t = (zh: string, en: string) => (lang === "zh" ? zh : en);
   return (
     <section className="provider-settings">
-      <h3>{t("识别与评测服务", "Recognition and assessment services")}</h3>
+      <h2>{t("识别与评测", "Recognition & assessment")}</h2>
       <label>
         {t("识别服务", "Recognition provider")}
         <select
+          aria-label={t("识别服务", "Recognition provider")}
           value={config?.asr_provider || "local"}
           onChange={(e) =>
             update({ asr_provider: e.target.value as "local" | "tencent" })
@@ -87,6 +88,7 @@ export function ProviderSettings({
       <label>
         {t("模型获取来源", "Model download source")}
         <select
+          aria-label={t("模型获取来源", "Model download source")}
           value={config?.model_source || "publisher"}
           onChange={(e) =>
             update({
@@ -109,6 +111,7 @@ export function ProviderSettings({
       <label>
         {t("发音评测供应商", "Pronunciation provider")}
         <select
+          aria-label={t("发音评测供应商", "Pronunciation provider")}
           value={config?.pronunciation_provider || "speechace"}
           onChange={(e) =>
             update({

@@ -1,0 +1,726 @@
+#AOCI-CODE-VOLUME: 1
+
+===D:/AI/Speech/===
+.gitattributes[FC5T]: F:规定跨平台检出的文本换行规则 | R:- | A:- | S:文本强制LF，避免autocrlf改变AOCI原始字节基线
+.gitignore[FC5T]: F:排除依赖环境、模型、录音、构建产物与本机配置 | R:- | A:Git ignore rules | S:允许.env.example；机器绑定的.codex/config.toml不提交
+AGENTS.md[SG7S]: F:约束工具型界面文案及AOCI认知建立、刷新和维护流程 | R:- | A:项目及子目录Agent规则 | S:用户限制优先；压缩恢复必须完整重载Overview，摘要不能替代正式认知
+CONTRIBUTING.md[SG4T]: F:规定缺陷反馈、聚焦PR、依赖与模型变更的贡献要求 | R:code:THIRD_PARTY_NOTICES.md | A:- | S:不提交模型、缓存、安装包和用户录音
+LICENSE[SG4T]: F:授予应用源码MIT使用、修改与再分发许可并声明免责 | R:code:THIRD_PARTY_NOTICES.md | A:MIT License | S:再分发保留版权与许可文本
+README.en.md[SG5T]: F:说明Public Beta的Windows安装、本地练习流程、硬件要求与开发检查 | R:code:docs/ARCHITECTURE.md | A:- | S:模型权重按需下载；在线评估尚未充分验证
+README.md[SG5T]: F:介绍Oracy能力、安装、隐私边界与开发入口 | R:code:docs/ARCHITECTURE.md | A:- | S:当前正文为英文；识别差异不能代表英语能力或发音评分
+THIRD_PARTY_NOTICES.md[SV7T]: F:汇总运行时、模型、字体与图像的来源、许可及二进制分发义务 | R:code:scripts/collect_notices.py,code:backend/speech_practice/model_manifest.json | A:- | S:安装包仍为预览产物，copyleft对应源码及NVIDIA再分发义务尚未完成审计
+build.bat[OV5T]: F:依次构建冻结CPU后端、安装npm锁定依赖并生成Windows安装包 | R:code:scripts/build_backend.ps1,code:package.json | A:- | S:中间命令失败立即非零退出
+index.html[EU6T]: F:提供Oracy页面入口、React根节点与内容安全策略 | R:code:src/main.tsx | A:#root | S:CSP仅允许本机连接和自身资源；图片可用data/blob，object禁用
+package-lock.json[FV5L]: F:锁定前端、Electron与构建测试依赖的版本、来源和完整性 | R:code:package.json | A:npm ci; lockfileVersion=3 | S:-
+package.json[FV8S]: F:定义前端依赖、开发构建测试命令及NSIS桌面分发内容 | R:code:electron/main.cjs,code:scripts/build_backend.ps1 | A:dev; desktop; build; package; test:ui | S:基础包带冻结CPU后端与notices，不含模型；卸载不主动删除AppData；Windows目标x64且未签名
+playwright.config.ts[FQ5T]: F:配置界面测试目录、超时、视口及虚拟麦克风运行方式 | R:code:tests/ui/studio.spec.ts | A:defineConfig | S:单worker；Chromium伪设备/权限用于自动测试，不代表硬件验收
+pyproject.toml[FV7T]: F:定义CPU后端Python依赖范围、开发工具与pytest发现配置 | R:code:uv.lock,code:scripts/build_backend.ps1 | A:project; dependency-groups; tool.pytest.ini_options | S:Python限定3.12；后端版本0.2.1；GPU运行时另用requirements-qwen.lock
+release-manifest.json[FV5T]: F:记录0.2.2预览安装包的文件名、大小和SHA256交付身份 | R:code:scripts/create_release_manifest.py | A:installer; optionalComponents | S:声明不含模型；清单是固定产物记录，不能证明当前源码已重新打包
+requirements-qwen.lock[FV6S]: F:锁定独立Qwen与GPU识别运行时的Python依赖版本 | R:code:scripts/build_qwen.ps1 | A:uv pip sync | S:torch固定CUDA12.8变体；CPU依赖仍由uv.lock独立锁定
+start.bat[OV5T]: F:检查uv、按锁文件安装Python与npm依赖并启动桌面开发应用 | R:code:package.json,code:pyproject.toml | A:- | S:依赖步骤失败即退出；工作目录固定脚本所在目录
+
+===D:/AI/Speech/.github/ISSUE_TEMPLATE/===
+bug_report.yml[FQ3T]: F:收集版本、复现步骤及预期与实际行为的缺陷报告 | R:code:CONTRIBUTING.md | A:GitHub issue form | S:-
+feature_request.yml[FQ3T]: F:收集用户问题、最小功能提案和备选方案 | R:code:CONTRIBUTING.md | A:GitHub issue form | S:-
+
+===D:/AI/Speech/backend/===
+server.py[EG8T]: F:启动本机FastAPI服务或复用同一入口运行推理worker | R:code:backend/speech_practice/app.py,code:backend/speech_practice/worker.py | A:main | S:仅绑定127.0.0.1，随机端口与令牌通过首条stdout JSON交付桌面宿主
+worker_entry.py[RA5T]: F:为冻结GPU组件提供独立推理worker启动入口 | R:code:backend/speech_practice/worker.py,code:scripts/build_qwen.ps1 | A:main | S:-
+
+===D:/AI/Speech/backend/speech_practice/===
+__init__.py[LG1T]: F:标识Oracy本地后端Python包 | R:- | A:- | S:-
+app.py[EG9M]: F:组装鉴权API、会话编辑、录音、任务、模型及凭据设置 | R:code:backend/speech_practice/jobs.py,code:backend/speech_practice/storage.py,code:backend/speech_practice/schemas.py | A:create_app; /api/sessions; /api/recordings; /api/jobs; /api/events; /api/settings | S:API必须令牌鉴权；查询令牌仅用于媒体和SSE；上传前快照稿件；云调用必须显式consent；验证错误不回显凭据
+audio.py[KB5T]: F:解码录音、重采样并写入或流式合并标准WAV | R:- | A:decode; write_wav; merge_wav | S:统一24kHz单声道PCM16；默认解码上限120秒，峰值超过0.98才缩放
+cloud.py[IA8S]: F:适配腾讯SentenceRecognition与SOE签名、请求和结果解析 | R:code:backend/speech_practice/feedback.py,code:backend/speech_practice/observations.py | A:TencentASRProvider; TencentPronunciationProvider; tc3_headers; soe_url | S:签名使用实际提交JSON字节；SOE一次完整WAV帧后end；最终包可能无结果；错误只暴露受限代码，禁止签名URL泄漏
+components.py[OV8T]: F:验证并安装用户选择的Qwen运行时组件ZIP | R:code:backend/speech_practice/jobs.py | A:install_qwen | S:拒绝穿越、绝对路径、反斜杠、冒号与软链；按清单哈希校验全部文件后替换固定目标目录
+config.py[PC6T]: F:管理数据根、模型与录音路径及公开设置 | R:code:backend/speech_practice/app.py | A:Settings; public; update | S:默认LOCALAPPDATA/speech-practice；settings.json经临时文件替换；凭据不属于公开设置
+contracts.py[FA5T]: F:声明云ASR与评分适配器的能力、时长、量表及契约来源 | R:code:backend/speech_practice/cloud.py,code:backend/speech_practice/pronunciation.py | A:CONTRACTS | S:implemented不代表在线验证；iflytek仅候选且未实现
+feedback.py[DA8T]: F:保持评分来源与原始证据，规范量表、时间区间、问题优先级及历史视图 | R:code:backend/speech_practice/pronunciation.py,code:backend/speech_practice/cloud.py | A:tencent_feedback; normalize_legacy; recording_view; build_issues; score | S:腾讯流利度与完成度保留0–1原量表；无效时间不补造；历史归一化只改视图；优先级为应用规则而非诊断
+jobs.py[AW9S]: F:持久化优先任务、独立下载队列及worker桥接，执行合成、识别、评估与导出 | R:code:backend/speech_practice/worker.py,code:backend/speech_practice/storage.py,code:backend/speech_practice/models.py | A:Jobs; WorkerBridge; submit; cancel; execute; close | S:整篇每句后重入队；取消当前推理终止worker；缓存含文本参数和模型revision；只为仍同版本句子回写音频；重启未完任务失败；GPU ASR要求组件能力
+model_manifest.json[FA8L]: F:固定各本地TTS与ASR模型的revision、文件大小、下载URL和哈希算法 | R:code:backend/speech_practice/models.py,code:backend/speech_practice/providers.py | A:kokoro; whisper; qwen; qwen-small; parakeet; whisper-distil/whisper-turbo | S:小文件采用git blob SHA1，大权重采用SHA256；改变revision同时影响就绪判断与TTS缓存
+models.py[PA8T]: F:按清单校验、断点下载、导入与删除本地模型并报告就绪状态 | R:code:backend/speech_practice/model_manifest.json | A:ModelManager; download_file; digest; verify | S:首次完整校验后marker记录revision和mtime；ready不重算哈希；镜像仅替换传输域名；校验失败丢弃partial
+observations.py[KA6T]: F:准备16kHz识别音频并生成带来源的幅度、语速与词间隔观察 | R:code:backend/speech_practice/providers.py | A:prepare; observations | S:不增益或降噪；语速包含整段静音；uncertain或时间无效不生成语速与间隔；观察不构成口语分数
+pronunciation.py[IA7T]: F:通过系统凭据读取及Speechace v9接口获取词和音素评估 | R:code:backend/speech_practice/feedback.py | A:PronunciationProvider; SpeechaceProvider; parse_response; configured | S:extent单位10ms；服务密钥位于查询串，因此不暴露HTTP异常URL；Basic最大30秒
+providers.py[IA8S]: F:实现Kokoro、Qwen、Whisper与Parakeet的本地模型推理 | R:code:backend/speech_practice/audio.py,code:backend/speech_practice/observations.py,code:backend/speech_practice/schemas.py | A:KokoroProvider; QwenProvider; WhisperProvider; ParakeetProvider; parakeet_words | S:Whisper不使用目标稿提示且置信度未校准；Parakeet缺失token时长不补造词尾；Windows预载bundled ORT DLL；Qwen速度固定且0.6B无style
+schemas.py[CB7T]: F:定义会话、句子、合成、识别、评估、设置及反馈的Pydantic接口模型 | R:code:backend/speech_practice/app.py | A:Options; AnalyzeRequest; PronunciationRequest; SettingsEdit; Transcript; SessionCreate | S:consent默认false；Parakeet拒绝CUDA；qwen-small拒绝style；稿件与句子长度分别限100000与10000字符
+storage.py[PD8T]: F:在SQLite JSON对象存储中维护会话、句子版本及拆分合并关系 | R:code:backend/speech_practice/text.py | A:Store; create_session; edit_sentence; split; merge | S:主键为id+kind并迁移旧单键；编辑升版本并清asset；合并保留旧句对象供历史及在途任务引用；WAL加RLock
+text.py[KB7T]: F:英文分句、保留原文偏移的词规范化及稳定编辑距离对齐 | R:code:backend/speech_practice/jobs.py | A:split_sentences; tokens; align | S:同编辑代价优先更多精确匹配；展开缩写与数字仍映射原始span；n*m超过4000000拒绝对齐
+worker.py[RA8T]: F:以私有JSON行协议串行加载并复用模型处理合成与识别请求 | R:code:backend/speech_practice/providers.py | A:main | S:stdout独占协议，第三方日志重定向stderr；强制HF离线；复用键含kind、模型路径和device，切换释放旧模型
+
+===D:/AI/Speech/docs/===
+AOCI.md[SG5T]: F:说明本机AOCI接入、首次索引构建、日常维护与Git迁移边界 | R:code:AGENTS.md | A:- | S:scan只建立骨架和基线；本地MCP不上传代码不等于模型工作流离线
+ARCHITECTURE.md[SG7T]: F:描述Electron、React、FastAPI、SQLite与独立模型worker的分工及构建边界 | R:code:electron/main.cjs,code:backend/speech_practice/jobs.py | A:- | S:录音参考文本固定；缓存覆盖合成输入；识别差异与发音评分分离
+DELIVERY_0.2.2.md[SV5T]: F:提供Windows测试版安装、模型准备、练习与故障反馈说明 | R:code:docs/RELEASE_0.2.2.md | A:- | S:未签名且未完成干净Windows与二进制再分发审计
+ITERATION_0.2.md[SA6T]: F:记录0.2识别增强、腾讯评测、证据保存及有限样本性能验证 | R:code:backend/speech_practice/feedback.py,code:backend/speech_practice/cloud.py | A:- | S:意图稿不是真人转写真值；离线夹具不证明真实云调用或纠音有效性
+ITERATION_TECHNICAL_REPORT_2026-10-04.md[SG5M]: F:提出分轮稳定性、识别纠音增强与考试训练的产品和技术规划 | R:code:docs/VALIDATION.md | A:- | S:规划草案并未实施或重跑验收，建议门槛不能当作已有能力
+OPTIONAL_MODELS_0.2.1.md[SA5T]: F:记录Parakeet与Qwen0.6B能力约束、固定权重、Windows DLL修复及验证范围 | R:code:backend/speech_practice/providers.py | A:- | S:Windows须显式加载bundled ORT；0.6B无style；性能不能证明真人识别或音质提高
+RELEASE_0.2.2.md[SV5T]: F:记录0.2.2桌面测试版构建、安装、后端与UI验证及发行边界 | R:code:scripts/build_backend.ps1,code:package.json | A:- | S:应用0.2.2而后端协议0.2.1；后续外观升级并未重新打包
+USAGE_0.2.en.md[SB4T]: F:解释本地识别与独立云评测设置、上传限制、量表和片段回放 | R:code:docs/ITERATION_0.2.md | A:- | S:缺失分数不是零；模型失败不自动切换收费服务
+VALIDATION.md[SQ5S]: F:保留0.1自动测试、模型、冻结程序及桌面流程验证和未验收事项 | R:code:docs/ITERATION_0.2.md | A:- | S:历史结果仅限开发机；虚拟麦克风和TTS识别不证明真人效果
+appearance-upgrade.md[SU5T]: F:记录个性化装饰、图片存储、动效和真实麦克风波形实现及验证 | R:code:src/Appearance.tsx,code:electron/main.cjs | A:- | S:桌面外观存储不受随机端口影响；GIF转静态帧；本轮未重打安装包
+frontend-assets.md[SU4T]: F:保留植物生成提示、字体许可、历史山景和原创SVG素材来源 | R:code:THIRD_PARTY_NOTICES.md | A:- | S:装饰图片与声音线迹不承载功能信息或音频证据
+frontend-redesign.md[SU5T]: F:记录统一前端、三栏练习、共享播放及响应式侧栏的实现和验证 | R:code:src/Workspace.tsx,code:src/PlaybackBar.tsx,code:src/Sidebar.tsx | A:- | S:历史prototype与legacy入口已统一；评测截图是标识的离线夹具
+practice-polish.md[SU4T]: F:记录专注页移除整句蓝框、精简反馈与保留词级高亮的局部修正 | R:code:src/SpeechReader.tsx,code:src/CoachPanel.tsx | A:- | S:-
+practice-prototype-review.md[SU3T]: F:保留旧练习原型的视觉验证、同稿对比和设计局限审查 | R:code:src/PracticePrototype.tsx | A:- | S:历史入口状态不代表当前活动界面
+practice-reference-implementation.md[SU3T]: F:记录参考图暖白山景原型的布局、录音锁定及验证方式 | R:code:docs/frontend-redesign.md,code:src/PracticePrototype.tsx | A:- | S:该原型组件和山景样式现不作为活动入口
+practice-visual-polish.md[SU4T]: F:记录练习视觉多轮变更、最终纯色波形和数据反馈验证 | R:code:src/CoachEvidence.tsx,code:src/workspace.css | A:- | S:顶部最新迭代覆盖后文历史渐变方案；UI夹具不是评测证据
+
+===D:/AI/Speech/electron/===
+main.cjs[EG9M]: F:管理Electron生命周期、本机后端、权限及文件和外观IPC | R:code:electron/preload.cjs,code:backend/server.py | A:connection; save-audio; choose-directory; choose-runtime; visual-preferences; visual-image | S:仅信任本窗口本机来源；contextIsolation+沙箱禁Node；只许音频权限；外观写入串行原子替换；退出终止后端进程树；保留旧userData名
+preload.cjs[IS7T]: F:向渲染器暴露连接、音频保存、目录选择和有限外观存储桥接 | R:code:electron/main.cjs,code:src/types.ts | A:window.desktop | S:仅暴露固定IPC方法，渲染器不能调用任意Node或路径读取
+
+===D:/AI/Speech/packaging/===
+windows.manifest[FV6T]: F:声明冻结Windows运行时的用户权限、UTF8代码页及长路径支持 | R:code:scripts/build_backend.ps1 | A:activeCodePage; longPathAware | S:UTF8是进程设置，用于中文路径原生库，未修改系统区域
+
+===D:/AI/Speech/public/images/decor/===
+geometry.svg[SU2T]: F:提供圆环与直线组合的本地装饰SVG | R:code:src/Appearance.tsx | A:- | S:-
+landscape.svg[SU2T]: F:提供柔和山形与圆形的本地装饰SVG | R:code:src/Appearance.tsx | A:- | S:-
+paper.svg[SU2T]: F:用静态SVG噪声滤镜提供纸张纹理装饰 | R:code:src/Appearance.tsx | A:- | S:-
+voice-trace.svg[SU2T]: F:提供多条声音线迹风格的静态装饰曲线 | R:code:src/Appearance.tsx | A:- | S:曲线不来自实际音频
+
+===D:/AI/Speech/scripts/===
+add_asr_models.py[XA5T]: F:读取官方HuggingFace元数据并将两个CT2识别模型追加到清单 | R:code:backend/speech_practice/model_manifest.json | A:- | S:权重用LFS SHA256，小文件用Git blob SHA1；已有模型不覆盖
+add_optional_models.py[XA5T]: F:为Parakeet和Qwen0.6B生成固定revision与逐文件哈希清单 | R:code:backend/speech_practice/model_manifest.json | A:- | S:替换这两项；排除README与测试音频
+archive_component.py[OV6T]: F:复制冻结GPU运行时并生成逐文件哈希组件清单和ZIP | R:code:scripts/build_qwen.ps1,code:backend/speech_practice/components.py | A:component.json | S:组件协议为1并声明qwen-tts和gpu-asr能力；不包含模型权重
+benchmark.py[TP5T]: F:测量本地合成与识别worker的冷暖启动时间和资源占用 | R:code:backend/speech_practice/worker.py | A:- | S:识别输入来自TTS；GPU采样为整卡数据，不能代表真人效果
+benchmark_asr.py[TA5T]: F:在本地录音及确定性安静噪声变体上比较多模型识别性能 | R:code:backend/speech_practice/providers.py | A:- | S:原始录音索引留在.local；参考稿是意图文本，差异率不等于转写真值准确率
+build_backend.ps1[OV7T]: F:冻结CPU后端并收集其运行依赖、许可和Windows配置 | R:code:backend/server.py,code:packaging/windows.manifest | A:build/backend/speech-backend | S:uv sync --frozen；复制inflect等源码供运行时inspect使用；CPU包不依赖开发Python
+build_qwen.ps1[OV7T]: F:按GPU锁文件构建独立推理可执行程序并封装组件 | R:code:requirements-qwen.lock,code:scripts/archive_component.py | A:build/components/speech-qwen | S:独立Python3.12环境与CUDA索引；许可收集使用该环境
+collect_notices.py[XV6T]: F:从已安装Python发行包提取许可文件与版本来源清单 | R:code:THIRD_PARTY_NOTICES.md | A:--qwen; inventory.json | S:区分CPU和GPU输出；收集文本不代表已完成分发合规审计
+create_manifest.py[XA6T]: F:从官方发布和仓库元数据生成本地模型下载与哈希清单 | R:code:backend/speech_practice/model_manifest.json | A:- | S:读取远端revision后固定进清单；生成步骤联网，推理worker仍离线
+create_release_manifest.py[XV5T]: F:为显式指定的安装包和组件计算交付大小与SHA256清单 | R:code:release-manifest.json | A:--version; --installer; --component; --output | S:仅描述输入文件；相对路径基于工作目录
+long_e2e.py[TB5T]: F:用冻结程序验证长稿合成、识别、缓存及进度重启恢复 | R:code:backend/speech_practice/jobs.py | A:docs/evidence | S:合成音频作为录音输入；隔离开发PATH与代理不能证明物理断网或真人验收
+package_delivery.py[OV5T]: F:汇集安装包、源码包、文档和选定证据并生成校验清单与交付ZIP | R:code:scripts/package_source.py | A:SHA256SUMS | S:不打包用户录音、模型或凭据；ZIP写后检查CRC
+package_source.py[OV6T]: F:按白名单生成可复现源码分发ZIP并记录产物哈希 | R:code:THIRD_PARTY_NOTICES.md | A:- | S:排除证据目录与Python缓存；检查GPU组件协议及能力；发行标为本地未签名预览
+prepare_optional_models.py[XA5T]: F:在隔离验证目录下载并校验Parakeet与Qwen小模型 | R:code:backend/speech_practice/models.py | A:- | S:两线程下载；复用既有tokenizer前仍验证清单哈希
+quality_check.py[TA5T]: F:以固定种子比较Qwen样式合成的波形哈希和识别差异 | R:code:backend/speech_practice/providers.py | A:- | S:ASR差异不是人工音质偏好或发音分数；样式仅有限样本
+smoke_component.py[TA5T]: F:在隔离目录安装冻结组件并顺序验证Qwen与CUDA识别 | R:code:backend/speech_practice/components.py | A:- | S:排除开发PATH；测试输入为合成音频
+smoke_desktop.cjs[TU5M]: F:驱动打包桌面验证示范播放、录音、导出、识别与历史恢复 | R:code:electron/main.cjs | A:docs/evidence/desktop-smoke.json | S:虚拟麦克风与测试选择保存路径；腾讯仅验证未配置状态，未验证在线服务
+smoke_gpu_api.py[TA5T]: F:经冻结后端API验证两个CUDA识别任务及持久化历史 | R:code:backend/speech_practice/app.py | A:- | S:使用已有组件合成音频；结果必须声明cuda且历史有两项
+smoke_optional_models.py[TA5T]: F:验证Qwen小模型与Parakeet的真实推理、音频边界及重启历史 | R:code:backend/speech_practice/providers.py | A:- | S:只删除隔离测试的单个缓存确保重新推理；不证明真人识别效果
+smoke_optional_packaged.py[TA5T]: F:验证冻结CPU与GPU可执行程序的小模型推理能力 | R:code:backend/worker_entry.py | A:- | S:worker调用限180秒；合成波形检验不等于音质评价
+smoke_packaged.py[TB5T]: F:验证冻结后端的合成、上传、识别、评估失败历史与音频Range响应 | R:code:backend/server.py | A:- | S:使用现有模型和TTS输入；禁开发PATH和外部代理；腾讯保持未配置
+smoke_qwen.py[TA5T]: F:以JSON行协议测试冻结Qwen的真实合成及中文输出路径 | R:code:backend/speech_practice/worker.py | A:- | S:推理限定离线；finally终止worker
+smoke_restart.py[TD5T]: F:重启冻结后端并核验此前录音快照、评估与CUDA识别历史 | R:code:scripts/smoke_packaged.py | A:- | S:依赖已有smoke数据与组件目录，不是独立空环境测试
+verify-appearance-desktop.cjs[TU5S]: F:验证桌面外观导入、跨启动恢复、删除与非法图片IPC拒绝 | R:code:src/Appearance.tsx,code:electron/main.cjs | A:- | S:不同renderer配置共用隔离SPEECH_DATA_DIR，验证随机端口之外的持久化
+verify-redesign-desktop.cjs[TU5S]: F:验证统一桌面界面的导航、播放、保存、截图和页面错误 | R:code:src/Workspace.tsx | A:- | S:仅打包模式执行虚拟麦克风及真实Kokoro流程；截图不证明评测效果
+
+===D:/AI/Speech/src/===
+ActivityPages.tsx[AU6L]: F:展示跨稿件录音记录、周活动、目标和里程碑 | R:code:src/practiceData.ts,code:src/App.tsx | A:ActivityPages | S:部分加载失败明确提示；周目标必须用户保存；时长包含重录且按本地日历统计
+AnalysisWorkspace.tsx[AU6M]: F:组织录音分析视图、指标、版本参考与证据反馈 | R:code:src/LocalFeedback.tsx,code:src/CoachPanel.tsx | A:AnalysisWorkspace | S:切换录音清除选中评估；保留供应商原量表，旧句版本显式标识
+App.tsx[AW9L]: F:编排本地连接、会话编辑、录音、任务事件、模型和供应商设置 | R:code:src/Workspace.tsx,code:src/types.ts,code:backend/speech_practice/app.py | A:App | S:录音先保存文本并限119秒；上传失败保留预览；云调用显式确认；活动缓存由变更版本失效；异步回写核对当前会话
+Appearance.tsx[AU7L]: F:管理装饰素材、动效偏好、图片导入与本机持久化 | R:code:electron/preload.cjs,code:src/appearance.css | A:AppearanceProvider; AppearanceSettings; DecorSlot; useAppearance | S:桌面存储经IPC，浏览器用localStorage与IndexedDB；导入限12MB和4000万像素并压缩为静态WebP；新图片存妥后才替换旧图；销毁时撤销Blob URL
+CoachEvidence.tsx[DU5S]: F:呈现词级分数、WPM与可信词间隔的视觉证据 | R:code:src/CoachPanel.tsx | A:WordScoreStrip; PaceFeedback; PauseFeedback; recordingGaps | S:缺失分数保留无数据；间隔须有限且位于录音时长内，阈值0.7秒
+CoachPanel.tsx[AU6M]: F:组织本句录音摘要、优先复核项和其他证据指标 | R:code:src/CoachEvidence.tsx,code:src/Workspace.tsx | A:CoachPanel; recordingScore; recordingPace | S:旧版本反馈显式标注；时间不可靠则回听整句；分数来自评测服务且不同供应商不直接比较
+DesignSystem.tsx[CU5M]: F:提供面板、工具栏、分段选择、状态及指标展示组件 | R:- | A:Panel; Toolbar; SegmentedControl; StatusBadge; MetricCard; ProgressRing | S:分段选择支持方向键和Home/End；进度环仅将视觉比例钳制0至100
+Dialog.tsx[CU6T]: F:提供具备键盘与焦点管理的模态对话框 | R:code:src/App.tsx | A:Dialog | S:Tab限制在弹窗内，Escape关闭，退出恢复原焦点；首选文本输入框
+FeedbackPanel.tsx[AU4S]: F:保留历史评测面板的原量表、问题片段与原始结果展示 | R:code:src/types.ts | A:FeedbackPanel | S:当前App未使用该面板；历史兼容组件不能代表活动界面
+LocalFeedback.tsx[AU7M]: F:展示录音识别差异、历史评测、可靠片段和评分来源 | R:code:src/segment.ts,code:src/types.ts | A:LocalFeedback | S:uncertain识别不展示差异定位；重复词须有时间交集或唯一词证据才关联问题；无可靠时间禁止片段定位；缺失评分不写零
+PlaybackBar.tsx[AU7M]: F:集中控制示范、录音及整篇播放、跳转、倍速与录音入口 | R:code:src/RecordingWaveform.tsx,code:src/Workspace.tsx | A:AudioTransport | S:切换来源先暂停其他音轨；位置来自真实audio.currentTime；手动跳转清除评测片段终止点；布局切换不重建音频元素
+PracticeAudio.tsx[CU6M]: F:提供共享秒轴的音频波形、进度与播放控件 | R:code:src/PracticePrototype.tsx,code:src/Workspace.tsx | A:PracticeAudio; audioTime | S:波形源于真实解码峰值且不作响度归一；两轨共用最大时长，不表示词级对齐；解码失败仍允许播放；清理中止请求及AudioContext
+PracticePrototype.tsx[AU3L]: F:保留旧暖白山景练习原型的阅读、录音和反馈布局 | R:code:src/PracticeAudio.tsx | A:PracticePrototype; PracticePrototypeProps | S:当前App使用Workspace；原型录音区域曲线为装饰
+PracticeReport.tsx[AU5S]: F:生成按句汇总的录音状态、识别差异与评分报告 | R:code:src/Workspace.tsx | A:Report | S:每句采用最新录音并标识旧版本；不生成跨服务综合分数
+ProviderSettings.tsx[AU6M]: F:设置本地识别模型、云评测供应商及腾讯凭据 | R:code:src/modelInfo.ts,code:src/App.tsx | A:ProviderSettings | S:Parakeet选择强制CPU；凭据保存成功才清空输入，失败保留重试；上传与可能收费的确认由App执行
+RecordingWaveform.tsx[CU6S]: F:采样正在录音的麦克风流并保留停止后的幅度波形 | R:code:src/PlaybackBar.tsx | A:RecordingWaveform | S:只观察已有stream，不申请权限或停止tracks；不归一幅度；可视化失败不停止录音；清理自身Context与动画
+Sidebar.tsx[AU5S]: F:提供稿件、练习、记录、进度和设置导航及折叠状态 | R:code:src/Workspace.tsx,code:src/Appearance.tsx | A:Sidebar | S:折叠保留无障碍名称；业务导航遵循录音锁定状态
+SpeechReader.tsx[DU7M]: F:按原稿段落或专注模式显示句子并跟随真实录音词时间高亮 | R:code:src/Workspace.tsx | A:SpeechReader | S:只有当前句版本且成功评测才标注；词匹配核验边界，播放高亮须有限时间且不超过录音时长；进度点表示位置而非完成率
+TransportIcon.tsx[CU3T]: F:绘制播放与暂停状态图标 | R:code:src/PlaybackBar.tsx | A:TransportIcon | S:图标aria-hidden，按钮承担动作名称
+Waveform.tsx[CU5T]: F:从音频解码峰值绘制可拖动秒级进度波形 | R:- | A:Waveform | S:此组件按最大峰值归一视觉幅度；波形不是评分；真实位置由外部传入
+Workspace.tsx[AU8L]: F:组织统一侧栏、阅读分析、辅助面板、媒体控制及其他功能页 | R:code:src/Sidebar.tsx,code:src/PlaybackBar.tsx,code:src/SpeechReader.tsx,code:src/useOverlayFocus.ts | A:Workspace; WorkspaceProps | S:只有练习和分析显示媒体；窄屏面板设模态并锁焦点；录音上传时锁定业务导航；切换侧栏或辅助面板保留媒体元素；上传失败预览优先
+appearance.css[FU5L]: F:定义装饰槽、外观设置、录音波形和动效偏好的视觉规则 | R:code:src/Appearance.tsx | A:- | S:装饰不截获指针；off与系统减少动效禁用动画、过渡和光滑滚动
+main.tsx[EU6T]: F:挂载React应用并注入外观状态Provider | R:code:src/App.tsx,code:src/Appearance.tsx | A:#root | S:开启StrictMode；全局基础样式先于外观覆盖样式加载
+modelInfo.ts[DU4T]: F:为设置页提供各本地模型能力与限制的中英文说明 | R:code:src/ProviderSettings.tsx | A:modelDescription | S:未知模型返回空串，不猜测能力
+practice-feedback.css[FU4S]: F:定义识别差异、评测问题和证据详情的共享样式 | R:code:src/LocalFeedback.tsx | A:- | S:-
+practice-polish.css[FU4L]: F:覆盖阅读、侧栏、紧凑反馈与编辑区的最终视觉样式 | R:code:src/Workspace.tsx | A:- | S:在workspace样式之后导入，覆盖顺序决定最终外观
+practice-prototype.css[FU3L]: F:保留旧山景练习原型的暖色布局与响应式视觉规则 | R:code:src/PracticePrototype.tsx | A:- | S:仅随历史原型导入，当前活动Workspace不依赖该山景背景
+practice-tokens.css[FU5T]: F:声明前端颜色、字体、间距、宽度及动效基础变量 | R:code:src/style.css | A:CSS custom properties | S:pa-green历史别名现映射冷蓝色；修改变量影响多套共享样式
+practiceData.ts[DD6T]: F:按已保存录音计算本地周活动、连续天数与稿件完成情况 | R:code:src/ActivityPages.tsx | A:practiceStats; recordingScore; localDay | S:包含重录时长；完成需每句当前版本录音；今日为空则从昨日数连续天数；零分有效但缺失或失败为null
+segment.ts[DU6T]: F:验证评测时间区间并为片段回放补充上下文 | R:code:src/App.tsx | A:playbackRange | S:非法或超录音时长返回null；有效片段两端扩0.25秒并钳制到录音边界
+style.css[FU4M]: F:提供页面、表单、焦点、对话框和错误状态的基础样式 | R:code:src/practice-tokens.css | A:- | S:-
+types.ts[CB6S]: F:声明前端会话、任务、模型、评测证据及桌面桥接类型 | R:code:electron/preload.cjs,code:backend/speech_practice/schemas.py | A:Connection; Session; Recording; Pronunciation; Settings; Desktop | S:评分和时间可缺失；桌面类型只列有限IPC方法，不能视为任意文件接口
+useOverlayFocus.ts[CU6T]: F:为窄屏导航与辅助浮层管理焦点循环和返回 | R:code:src/Workspace.tsx | A:useOverlayFocus | S:仅开放浮层时接管按键；排除不可见及inert元素；关闭后仅恢复仍连接的原节点
+workspace.css[FU5L]: F:定义统一桌面工作区、功能页、响应式导航与打印布局 | R:code:src/Workspace.tsx | A:- | S:打印隐藏导航、媒体控件和辅助面板，报告条目避免跨页拆分
+
+===D:/AI/Speech/third-party/base/PyYAML/===
+pyyaml-6.0.3.dist-info_licenses_LICENSE[SV3T]: F:保留PyYAML的MIT授权、版权声明与免责条款 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/Pygments/===
+pygments-2.21.0.dist-info_licenses_LICENSE[SV3T]: F:保留Pygments源码与二进制再分发条件及免责声明 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/altgraph/===
+altgraph-0.17.5.dist-info_LICENSE[SV3T]: F:记录altgraph宽松使用、修改和分发授权及免责 | R:- | A:- | S:原文未含标准MIT的保留声明条件，不自行补写
+
+===D:/AI/Speech/third-party/base/annotated-doc/===
+annotated_doc-0.0.5.dist-info_licenses_LICENSE[SV3T]: F:保留annotated-doc的MIT许可与作者版权声明 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/annotated-types/===
+annotated_types-0.8.0.dist-info_licenses_LICENSE[SV3T]: F:保留annotated-types贡献者的MIT授权和免责文本 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/anyio/===
+anyio-4.15.1.dist-info_licenses_LICENSE[SV3T]: F:保留AnyIO的MIT使用与再分发许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/attrs/===
+attrs-26.1.0.dist-info_licenses_LICENSE[SV3T]: F:保留attrs的MIT许可、版权与免责条款 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/av/===
+av-16.1.0.dist-info_licenses_LICENSE.txt[SV3T]: F:记录PyAV保留声明与禁止未经授权背书的BSD再分发条件 | R:- | A:- | S:本文件不替代其链接FFmpeg的许可
+
+===D:/AI/Speech/third-party/base/babel/===
+babel-2.18.0.dist-info_licenses_LICENSE[SV3T]: F:保留Babel团队版权及BSD三条款分发与免责条件 | R:- | A:- | S:-
+babel_locale-data_LICENSE.unicode[SV3T]: F:记录Babel所带Unicode数据的Unicode-3.0许可与声明保留条件 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/certifi/===
+certifi-2026.7.22.dist-info_licenses_LICENSE[SV4T]: F:说明certifi证书来自Mozilla根证书数据并适用MPL2.0 | R:- | A:- | S:包含许可引用而非完整MPL文本
+
+===D:/AI/Speech/third-party/base/cffi/===
+cffi-2.1.1.dist-info_licenses_LICENSE[SV3T]: F:记录CFFI默认MIT No Attribution授权及免责 | R:- | A:- | S:明确允许目录或文件另行声明许可例外
+
+===D:/AI/Speech/third-party/base/charset-normalizer/===
+charset_normalizer-3.5.2.dist-info_licenses_LICENSE[SV3T]: F:保留charset-normalizer的MIT授权与版权免责声明 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/click/===
+click-8.5.0.dist-info_licenses_LICENSE.txt[SV3T]: F:保留Click的Pallets版权及BSD三条款再分发条件 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/cloudpickle/===
+cloudpickle-3.1.2.dist-info_licenses_LICENSE[SV3T]: F:记录cloudpickle及其PiCloud来源的版权与BSD三条款许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/colorama/===
+colorama-0.4.6.dist-info_licenses_LICENSE.txt[SV3T]: F:保留colorama的BSD版权、分发和不得背书条件 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/colorlog/===
+colorlog-6.12.0.dist-info_licenses_LICENSE[SV3T]: F:保留colorlog的MIT授权、声明保留和免责文本 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/csvw/===
+csvw-4.1.0.dist-info_LICENSE[SV3M]: F:保留csvw的Apache2.0授权、专利与分发条件全文 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/dlinfo/===
+dlinfo-2.0.0.dist-info_LICENSE[SV3T]: F:保留dlinfo的MIT许可及Catalysts版权声明 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/fastapi/===
+fastapi-0.142.2.dist-info_licenses_LICENSE[SV3T]: F:保留FastAPI的MIT授权和作者版权免责条款 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/faster-whisper/===
+faster_whisper-1.2.1.dist-info_LICENSE[SV3T]: F:保留faster-whisper的SYSTRAN版权与MIT许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/filelock/===
+filelock-4.0.9.dist-info_licenses_LICENSE[SV3T]: F:保留filelock的MIT授权与贡献者版权声明 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/fsspec/===
+fsspec-2026.9.0.dist-info_licenses_LICENSE[SV3T]: F:保留fsspec的BSD三条款许可、版权与免责文本 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/h11/===
+h11-0.16.0.dist-info_licenses_LICENSE.txt[SV3T]: F:保留h11的MIT授权与贡献者版权声明 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/httpcore/===
+httpcore-1.0.9.dist-info_licenses_LICENSE.md[SV3T]: F:记录httpcore的BSD再分发条件与Encode版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/httpx/===
+httpx-0.28.1.dist-info_licenses_LICENSE.md[SV3T]: F:保留HTTPX源码和二进制的BSD声明保留与免责条款 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/huggingface_hub/===
+huggingface_hub-0.36.2.dist-info_licenses_LICENSE[SV3M]: F:保留HuggingFace Hub的Apache2.0授权与分发条款 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/idna/===
+idna-3.20.dist-info_licenses_LICENSE.md[SV3T]: F:保留idna的BSD三条款许可和版权声明 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/inflect/===
+inflect-7.5.0.dist-info_LICENSE[SV3T]: F:保留inflect的MIT使用、修改、分发许可与免责 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/iniconfig/===
+iniconfig-2.3.0.dist-info_licenses_LICENSE[SV3T]: F:保留iniconfig的MIT授权与作者版权文本 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/===
+inventory.json[FV5L]: F:列出冻结CPU环境的Python包版本、许可元数据、来源与收集的notice路径 | R:code:scripts/collect_notices.py | A:name; version; license_expression; license_summary; sources; notices | S:许可字段可为空；这是收集时快照，不是完整合规结论
+
+===D:/AI/Speech/third-party/base/isodate/===
+isodate-0.7.2.dist-info_LICENSE[SV3T]: F:保留isodate的BSD分发条件、作者版权与免责 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/jaraco.classes/===
+jaraco.classes-3.4.0.dist-info_LICENSE[SV3T]: F:保留jaraco.classes的MIT授权及声明保留要求 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/jaraco.context/===
+jaraco_context-6.1.2.dist-info_licenses_LICENSE[SV3T]: F:保留jaraco.context的MIT许可与免责原文 | R:- | A:- | S:版权持有人仍为上游占位文本，不自行填充
+
+===D:/AI/Speech/third-party/base/jaraco.functools/===
+jaraco_functools-4.6.0.dist-info_licenses_LICENSE[SV3T]: F:保留jaraco.functools的MIT授权与免责原文 | R:- | A:- | S:上游版权持有人字段为占位文本
+
+===D:/AI/Speech/third-party/base/joblib/===
+joblib-1.6.0.dist-info_licenses_LICENSE.txt[SV3T]: F:保留joblib的BSD三条款及开发者版权声明 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/jsonschema-specifications/===
+jsonschema_specifications-2025.9.1.dist-info_licenses_COPYING[SV3T]: F:保留JSON Schema specifications的MIT授权与Julian Berman版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/jsonschema/===
+jsonschema-4.26.0.dist-info_licenses_COPYING[SV3T]: F:保留jsonschema的MIT许可及作者版权免责 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/keyring/===
+keyring-25.7.0.dist-info_licenses_LICENSE[SV3T]: F:保留keyring的MIT授权与免责文本 | R:- | A:- | S:上游版权持有人字段仍为占位文本
+
+===D:/AI/Speech/third-party/base/kokoro-onnx/===
+kokoro_onnx-0.4.9.dist-info_licenses_LICENSE[SV3T]: F:保留Kokoro ONNX运行包装库的MIT许可与作者版权 | R:- | A:- | S:此文件不定义模型权重许可
+
+===D:/AI/Speech/third-party/base/language-tags/===
+language_tags-1.3.1.dist-info_licenses_LICENSE[SV3T]: F:保留language-tags的MIT授权和机构版权声明 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/more-itertools/===
+more_itertools-11.1.0.dist-info_licenses_LICENSE[SV3T]: F:保留more-itertools的MIT许可与Erik Rose版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/numpy/===
+numpy-2.5.3.dist-info_licenses_LICENSE.txt[SV5L]: F:汇集NumPy的BSD许可及随二进制附带的OpenBLAS、LAPACK和GCC运行库授权 | R:code:THIRD_PARTY_NOTICES.md | A:- | S:GCC运行库包含GPL3与GCC-exception-3.1，不能用单一BSD名称概括整包
+numpy-2.5.3.dist-info_licenses_numpy__core_include_numpy_libdivide_LICENSE.txt[SV3T]: F:保留NumPy内置libdivide的zlib授权及修改标识要求 | R:- | A:- | S:-
+numpy-2.5.3.dist-info_licenses_numpy__core_src_common_pythoncapi-compat_COPYING[SV3T]: F:保留NumPy内置pythoncapi_compat的BSD零条款授权 | R:- | A:- | S:-
+numpy-2.5.3.dist-info_licenses_numpy__core_src_highway_LICENSE[SV4M]: F:汇集Highway的Apache2.0或BSD三条款双许可及CC0例外 | R:- | A:- | S:random-inl.h单独适用CC0，不能只按主双许可处理
+numpy-2.5.3.dist-info_licenses_numpy__core_src_multiarray_dragon4_LICENSE.txt[SV3T]: F:保留Dragon4代码在NumPy内的MIT授权与版权 | R:- | A:- | S:原始代码为zlib，作者另授权NumPy用MIT
+numpy-2.5.3.dist-info_licenses_numpy__core_src_npysort_x86-simd-sort_LICENSE.md[SV3T]: F:保留Intel SIMD排序代码的BSD三条款许可 | R:- | A:- | S:-
+numpy-2.5.3.dist-info_licenses_numpy__core_src_umath_svml_LICENSE[SV3T]: F:保留NumPy SVML相关代码的BSD版权与分发条件 | R:- | A:- | S:-
+numpy-2.5.3.dist-info_licenses_numpy_fft_pocketfft_LICENSE.md[SV3T]: F:保留pocketfft的Max Planck版权与BSD再分发条款 | R:- | A:- | S:-
+numpy-2.5.3.dist-info_licenses_numpy_linalg_lapack_lite_LICENSE.txt[SV3T]: F:保留LAPACK lite的多机构版权与分发免责条件 | R:- | A:- | S:-
+numpy-2.5.3.dist-info_licenses_numpy_ma_LICENSE[SV3T]: F:保留NumPy掩码数组实现的BSD版权与分发条款 | R:- | A:- | S:-
+numpy-2.5.3.dist-info_licenses_numpy_random_LICENSE.md[SV3T]: F:记录NumPy随机模块的NCSA和BSD三条款双许可 | R:- | A:- | S:具体算法组件仍有独立许可
+numpy-2.5.3.dist-info_licenses_numpy_random_src_distributions_LICENSE.md[SV3T]: F:保留NumPy随机分布代码及其来源的授权与免责 | R:- | A:- | S:-
+numpy-2.5.3.dist-info_licenses_numpy_random_src_mt19937_LICENSE.md[SV3T]: F:记录MT19937实现、原始算法及衍生代码的版权许可 | R:- | A:- | S:-
+numpy-2.5.3.dist-info_licenses_numpy_random_src_pcg64_LICENSE.md[SV3T]: F:保留PCG64的MIT许可与Melissa ONeill版权 | R:- | A:- | S:-
+numpy-2.5.3.dist-info_licenses_numpy_random_src_philox_LICENSE.md[SV3T]: F:保留Philox的D E Shaw Research版权与BSD许可 | R:- | A:- | S:-
+numpy-2.5.3.dist-info_licenses_numpy_random_src_sfc64_LICENSE.md[SV3T]: F:保留SFC64移植代码的MIT授权与来源说明 | R:- | A:- | S:-
+numpy-2.5.3.dist-info_licenses_numpy_random_src_splitmix64_LICENSE.md[SV3T]: F:记录SplitMix64作者的公有领域奉献与无担保声明 | R:- | A:- | S:-
+numpy__core_include_numpy_random_LICENSE.txt[SV3T]: F:保留随机模块随包libdivide代码的zlib授权 | R:- | A:- | S:-
+numpy_ma_LICENSE[SV3T]: F:保留随包掩码数组代码的BSD版权与分发条件 | R:- | A:- | S:-
+numpy_random_LICENSE.md[SV3T]: F:保留随包随机模块的NCSA与BSD三条款双许可原文 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/onnxruntime/===
+onnxruntime_LICENSE[SV3T]: F:保留ONNX Runtime的Microsoft版权与MIT许可 | R:- | A:- | S:-
+onnxruntime_ThirdPartyNotices.txt[SV5L]: F:汇集ONNX Runtime所带第三方软件版权、许可和源码获取说明 | R:code:THIRD_PARTY_NOTICES.md | A:- | S:上游要求不翻译本文件；各组件适用各自条款，不能仅以ONNX Runtime的MIT概括
+
+===D:/AI/Speech/third-party/base/opentelemetry-api/===
+opentelemetry_api-1.45.0.dist-info_licenses_LICENSE[SV3M]: F:保留OpenTelemetry API的Apache2.0许可全文 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/packaging/===
+packaging-26.3.dist-info_licenses_LICENSE[SV3T]: F:声明packaging可选Apache2.0或BSD许可，贡献同时适用两者 | R:- | A:- | S:-
+packaging-26.3.dist-info_licenses_LICENSE.APACHE[SV3S]: F:保留packaging的Apache2.0授权及分发条件 | R:- | A:- | S:-
+packaging-26.3.dist-info_licenses_LICENSE.BSD[SV3T]: F:保留packaging的BSD授权与贡献者版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/pefile/===
+pefile-2024.8.26.dist-info_LICENSE[SV3T]: F:保留pefile的MIT许可与Ero Carrera版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/phonemizer-fork/===
+phonemizer_fork-3.3.2.dist-info_licenses_LICENSE[SV5L]: F:保留phonemizer-fork的GPL3授权、分发与源码条件全文 | R:code:THIRD_PARTY_NOTICES.md | A:- | S:-
+
+===D:/AI/Speech/third-party/base/pluggy/===
+pluggy-1.6.0.dist-info_licenses_LICENSE[SV3T]: F:保留pluggy的MIT许可与版权免责声明 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/protobuf/===
+protobuf-7.36.2.dist-info_LICENSE[SV3T]: F:保留protobuf的Google版权及BSD再分发条款 | R:- | A:- | S:生成代码版权归输入文件所有者，支持库仍受该许可约束
+
+===D:/AI/Speech/third-party/base/psutil/===
+psutil-7.2.2.dist-info_LICENSE[SV3T]: F:保留psutil的BSD三条款许可和作者版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/pycparser/===
+pycparser-3.0.dist-info_licenses_LICENSE[SV3T]: F:保留pycparser的BSD授权与Eli Bendersky版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/pydantic/===
+pydantic-2.13.5.dist-info_licenses_LICENSE[SV3T]: F:保留Pydantic的MIT许可与机构及贡献者版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/pydantic_core/===
+pydantic_core-2.46.5.dist-info_licenses_LICENSE[SV3T]: F:保留pydantic-core的MIT许可与作者版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/pyinstaller-hooks-contrib/===
+pyinstaller_hooks_contrib-2026.8.dist-info_licenses_LICENSE[SV5L]: F:区分PyInstaller社区普通hooks的GPL2及运行时hooks的Apache2.0许可 | R:code:scripts/build_backend.ps1 | A:- | S:嵌入可执行文件的rthooks适用Apache2.0，不能按普通hook的GPL概括
+
+===D:/AI/Speech/third-party/base/pyinstaller/===
+pyinstaller-6.22.3.dist-info_licenses_COPYING.txt[SV5L]: F:汇集PyInstaller的GPL2及bootloader例外、运行时Apache与isolated模块MIT条款 | R:code:scripts/build_backend.ps1 | A:- | S:bootloader组合分发例外不免除对其自身修改和单独分发的GPL约束
+
+===D:/AI/Speech/third-party/base/pyparsing/===
+pyparsing-3.3.3.dist-info_licenses_LICENSE[SV3T]: F:保留pyparsing的MIT授权和Paul McGuire版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/pysbd/===
+pysbd-0.3.4.dist-info_LICENSE[SV3T]: F:保留pysbd的MIT许可与作者版权声明 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/pytest/===
+pytest-9.1.1.dist-info_licenses_LICENSE[SV3T]: F:保留pytest的MIT许可和贡献者版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/python-dateutil/===
+python_dateutil-2.9.0.post0.dist-info_LICENSE[SV4T]: F:记录dateutil的Apache2.0与BSD授权及历史版权 | R:- | A:- | S:BSD适用于所有代码，包括同时适用Apache的部分
+
+===D:/AI/Speech/third-party/base/python-multipart/===
+python_multipart-0.0.32.dist-info_licenses_LICENSE.txt[SV3M]: F:保留python-multipart的Apache2.0许可全文 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/pywin32-ctypes/===
+pywin32_ctypes-0.2.3.dist-info_LICENSE.txt[SV3T]: F:保留pywin32-ctypes的Enthought版权与BSD分发免责条款 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/rdflib/===
+rdflib-7.6.0.dist-info_LICENSE[SV3T]: F:保留RDFLib的BSD三条款许可与团队版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/referencing/===
+referencing-0.37.0.dist-info_licenses_COPYING[SV3T]: F:保留referencing的MIT授权与作者版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/regex/===
+regex-2026.9.29.dist-info_licenses_LICENSE.txt[SV4M]: F:记录regex的CPython衍生来源与Apache2.0增改代码许可 | R:- | A:- | S:原始re模块保留CNRI Python1.6来源说明
+
+===D:/AI/Speech/third-party/base/requests/===
+requests-2.34.2.dist-info_licenses_LICENSE[SV3S]: F:保留Requests的Apache2.0授权与分发条款 | R:- | A:- | S:-
+requests-2.34.2.dist-info_licenses_NOTICE[SV3T]: F:保留Requests项目名称及Kenneth Reitz版权归属 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/rfc3986/===
+rfc3986-1.5.0.dist-info_LICENSE[SV3T]: F:保留rfc3986的Apache2.0许可引用与作者版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/rpds-py/===
+rpds_py-2026.6.3.dist-info_licenses_LICENSE[SV3T]: F:保留rpds-py的MIT许可和作者版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/scipy/===
+scipy-1.18.1.dist-info_LICENSE.txt[SV5L]: F:汇集SciPy的BSD条款和所带OpenBLAS、LAPACK、GCC运行库许可 | R:code:THIRD_PARTY_NOTICES.md | A:- | S:GCC运行库为GPL3附GCC-exception-3.1，整包不是单一BSD授权
+scipy__lib__uarray_LICENSE[SV3T]: F:保留SciPy所带uarray的BSD三条款授权 | R:- | A:- | S:-
+scipy_fft__duccfft_LICENSE.md[SV3T]: F:保留SciPy所带duccfft的版权与BSD许可 | R:- | A:- | S:-
+scipy_integrate_LICENSE_DOP[SV3T]: F:保留SciPy DOP积分代码的版权、再分发条件与来源 | R:- | A:- | S:-
+scipy_spatial_qhull_src_COPYING_QHULL.txt[SV3T]: F:保留Qhull几何库的作者版权、许可与免责原文 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/segments/===
+segments-2.4.0.dist-info_LICENSE[SV3M]: F:保留segments的Apache2.0许可全文 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/setuptools/===
+setuptools-84.0.0.dist-info_licenses_LICENSE[SV3T]: F:保留setuptools的MIT使用与再分发授权 | R:- | A:- | S:-
+setuptools__vendor_autocommand-2.2.2.dist-info_LICENSE[SV4S]: F:保留setuptools内置autocommand的LGPL3许可 | R:- | A:- | S:-
+setuptools__vendor_backports.tarfile-1.2.0.dist-info_LICENSE[SV3T]: F:保留内置backports.tarfile的MIT许可 | R:- | A:- | S:-
+setuptools__vendor_importlib_metadata-8.7.1.dist-info_licenses_LICENSE[SV3T]: F:保留内置importlib-metadata的Apache2.0条款 | R:- | A:- | S:-
+setuptools__vendor_jaraco.text-4.0.0.dist-info_LICENSE[SV3T]: F:保留内置jaraco.text的MIT授权 | R:- | A:- | S:-
+setuptools__vendor_jaraco_context-6.1.0.dist-info_licenses_LICENSE[SV3T]: F:保留内置jaraco.context的MIT许可原文 | R:- | A:- | S:-
+setuptools__vendor_jaraco_functools-4.4.0.dist-info_licenses_LICENSE[SV3T]: F:保留内置jaraco.functools的MIT许可原文 | R:- | A:- | S:-
+setuptools__vendor_more_itertools-10.8.0.dist-info_licenses_LICENSE[SV3T]: F:保留内置more-itertools的MIT版权与许可 | R:- | A:- | S:-
+setuptools__vendor_packaging-26.0.dist-info_licenses_LICENSE[SV3T]: F:声明内置packaging的Apache或BSD可选双许可 | R:- | A:- | S:贡献须同时遵循两项许可
+setuptools__vendor_packaging-26.0.dist-info_licenses_LICENSE.APACHE[SV3S]: F:保留内置packaging的Apache2.0许可 | R:- | A:- | S:-
+setuptools__vendor_packaging-26.0.dist-info_licenses_LICENSE.BSD[SV3T]: F:保留内置packaging的BSD授权与版权 | R:- | A:- | S:-
+setuptools__vendor_platformdirs-4.4.0.dist-info_licenses_LICENSE[SV3T]: F:保留内置platformdirs的MIT许可与开发者版权 | R:- | A:- | S:-
+setuptools__vendor_tomli-2.4.0.dist-info_licenses_LICENSE[SV3T]: F:保留内置tomli的MIT授权与作者版权 | R:- | A:- | S:-
+setuptools__vendor_wheel-0.46.3.dist-info_licenses_LICENSE.txt[SV3T]: F:保留内置wheel的MIT许可及贡献者版权 | R:- | A:- | S:-
+setuptools__vendor_zipp-3.23.0.dist-info_licenses_LICENSE[SV3T]: F:保留内置zipp的MIT许可与免责文本 | R:- | A:- | S:-
+setuptools_config_NOTICE[SV4T]: F:记录setuptools配置schema取自validate-pyproject并适用MPL2.0 | R:- | A:- | S:-
+setuptools_config__validate_pyproject_NOTICE[SV4L]: F:汇集预编译schema验证代码的生成来源、版权与许可 | R:- | A:- | S:上游声明自动生成，不应手改生成代码
+
+===D:/AI/Speech/third-party/base/sherpa_onnx/===
+sherpa_onnx-1.13.8.dist-info_licenses_LICENSE[SV3M]: F:保留Sherpa ONNX的Apache2.0许可全文 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/six/===
+six-1.17.0.dist-info_LICENSE[SV3T]: F:保留six的MIT授权与Benjamin Peterson版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/soundfile/===
+_soundfile_data_COPYING[SV4L]: F:保留SoundFile所带libsndfile的LGPL2.1许可 | R:- | A:- | S:-
+licensing_license_notes.md[SV5T]: F:列出SoundFile所链接媒体库的版权、具体许可和源码来源 | R:code:THIRD_PARTY_NOTICES.md | A:- | S:Python包为BSD，所带媒体库分别含LGPL和BSD；不能用包装库许可概括二进制
+soundfile-0.14.0.dist-info_LICENSE[SV3T]: F:保留SoundFile Python包装库的BSD版权与分发条件 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/starlette/===
+starlette-1.7.0.dist-info_licenses_LICENSE.md[SV3T]: F:保留Starlette的Encode版权与BSD许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/termcolor/===
+termcolor-3.3.0.dist-info_licenses_COPYING.txt[SV3T]: F:保留termcolor的MIT许可与作者版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/typeguard/===
+typeguard-4.6.0.dist-info_licenses_LICENSE[SV3T]: F:保留typeguard的MIT许可与作者版权声明 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/typing-inspection/===
+typing_inspection-0.4.4.dist-info_licenses_LICENSE[SV3T]: F:保留typing-inspection的MIT许可与Pydantic机构版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/typing_extensions/===
+typing_extensions-4.16.0.dist-info_licenses_LICENSE[SV4M]: F:保留typing-extensions所继承的Python历史版权、PSF许可与BSD零条款 | R:- | A:- | S:Python内含代码可有独立许可，不能忽略历史条款
+
+===D:/AI/Speech/third-party/base/uritemplate/===
+uritemplate-4.2.0.dist-info_licenses_LICENSE[SV3T]: F:声明uritemplate的Apache或BSD可选双许可及贡献双重约束 | R:- | A:- | S:这里只引用独立许可文件，不含两份条款全文
+
+===D:/AI/Speech/third-party/base/urllib3/===
+urllib3-2.8.0.dist-info_licenses_LICENSE.txt[SV3T]: F:保留urllib3的MIT许可与贡献者版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/uvicorn/===
+uvicorn-0.54.0.dist-info_licenses_LICENSE.md[SV3T]: F:保留Uvicorn的Encode版权与BSD许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/base/websockets/===
+websockets-15.0.1.dist-info_LICENSE[SV3T]: F:保留websockets的BSD授权与作者版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/Jinja2/===
+jinja2-3.1.6.dist-info_licenses_LICENSE.txt[SV3T]: F:保留GPU环境Jinja2的Pallets版权与BSD许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/MarkupSafe/===
+markupsafe-3.0.3.dist-info_licenses_LICENSE.txt[SV3T]: F:保留GPU环境MarkupSafe的BSD授权与Pallets版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/PyYAML/===
+pyyaml-6.0.3.dist-info_licenses_LICENSE[SV3T]: F:保留GPU环境PyYAML的MIT版权与许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/Pygments/===
+pygments-2.21.0.dist-info_licenses_LICENSE[SV3T]: F:保留GPU环境Pygments的BSD分发与免责条款 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/accelerate/===
+accelerate-1.12.0.dist-info_licenses_LICENSE[SV3M]: F:保留Accelerate的Apache2.0许可全文 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/altgraph/===
+altgraph-0.17.5.dist-info_LICENSE[SV3T]: F:保留GPU环境altgraph的宽松授权与免责原文 | R:- | A:- | S:原文没有标准MIT的保留声明条件
+
+===D:/AI/Speech/third-party/qwen/annotated-doc/===
+annotated_doc-0.0.5.dist-info_licenses_LICENSE[SV3T]: F:保留GPU环境annotated-doc的MIT授权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/annotated-types/===
+annotated_types-0.8.0.dist-info_licenses_LICENSE[SV3T]: F:保留GPU环境annotated-types的MIT许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/anyio/===
+anyio-4.15.1.dist-info_licenses_LICENSE[SV3T]: F:保留GPU环境AnyIO的MIT许可与版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/av/===
+av-16.1.0.dist-info_licenses_LICENSE.txt[SV3T]: F:保留GPU环境PyAV的BSD分发条款 | R:- | A:- | S:本文件不替代链接媒体库的独立许可
+
+===D:/AI/Speech/third-party/qwen/brotli/===
+brotli-1.2.0.dist-info_licenses_LICENSE[SV3T]: F:保留Brotli的MIT授权与作者版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/certifi/===
+certifi-2022.12.7.dist-info_LICENSE[SV4T]: F:记录GPU环境certifi证书数据的Mozilla来源与MPL2.0声明 | R:- | A:- | S:不包含完整MPL条款
+
+===D:/AI/Speech/third-party/qwen/cffi/===
+cffi-2.1.1.dist-info_licenses_LICENSE[SV3T]: F:保留GPU环境CFFI的MIT No Attribution许可 | R:- | A:- | S:目录或文件可另行声明许可例外
+
+===D:/AI/Speech/third-party/qwen/charset-normalizer/===
+charset_normalizer-2.1.1.dist-info_LICENSE[SV3T]: F:保留GPU环境charset-normalizer的MIT授权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/click/===
+click-8.5.0.dist-info_licenses_LICENSE.txt[SV3T]: F:保留GPU环境Click的BSD三条款许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/cloudpickle/===
+cloudpickle-3.1.2.dist-info_licenses_LICENSE[SV3T]: F:保留GPU环境cloudpickle的版权、来源与BSD许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/colorama/===
+colorama-0.4.6.dist-info_licenses_LICENSE.txt[SV3T]: F:保留GPU环境colorama的BSD授权与版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/decorator/===
+decorator-5.3.1.dist-info_licenses_LICENSE.txt[SV3T]: F:保留decorator的BSD许可与作者版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/einops/===
+einops-0.8.2.dist-info_licenses_LICENSE[SV3T]: F:保留einops的MIT许可与Alex Rogozhnikov版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/fastapi/===
+fastapi-0.142.2.dist-info_licenses_LICENSE[SV3T]: F:保留GPU环境FastAPI的MIT授权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/faster-whisper/===
+faster_whisper-1.2.1.dist-info_LICENSE[SV3T]: F:保留GPU环境faster-whisper的MIT许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/filelock/===
+filelock-3.32.3.dist-info_licenses_LICENSE[SV3T]: F:保留GPU环境filelock的MIT许可与贡献者版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/fsspec/===
+fsspec-2026.7.0.dist-info_licenses_LICENSE[SV3T]: F:保留GPU环境fsspec的BSD三条款许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/gradio/===
+gradio-6.17.3.dist-info_licenses_LICENSE[SV3M]: F:保留Gradio的Apache2.0许可全文 | R:- | A:- | S:-
+gradio__vendor_licenses_aiofiles.LICENSE[SV3M]: F:保留Gradio所带aiofiles的Apache2.0许可 | R:- | A:- | S:-
+gradio__vendor_licenses_aiofiles.NOTICE[SV3T]: F:保留aiofiles用途说明与作者版权归属 | R:- | A:- | S:-
+gradio__vendor_licenses_ffmpy.LICENSE[SV3T]: F:保留Gradio所带ffmpy的MIT许可与版权 | R:- | A:- | S:-
+gradio_templates_node_build_node_modules_eventemitter3_LICENSE[SV3T]: F:保留Gradio模板内eventemitter3的MIT许可 | R:- | A:- | S:-
+gradio_templates_node_build_node_modules_follow-redirects_LICENSE[SV3T]: F:保留Gradio模板内follow-redirects的MIT版权与授权 | R:- | A:- | S:-
+gradio_templates_node_build_node_modules_http-proxy_LICENSE[SV3T]: F:保留Gradio模板内node-http-proxy的MIT授权 | R:- | A:- | S:-
+gradio_templates_node_build_node_modules_requires-port_LICENSE[SV3T]: F:保留Gradio模板内requires-port的MIT许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/groovy/===
+groovy-0.1.2.dist-info_licenses_LICENSE[SV3M]: F:保留groovy的Apache2.0许可全文 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/h11/===
+h11-0.16.0.dist-info_licenses_LICENSE.txt[SV3T]: F:保留GPU环境h11的MIT版权与许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/hf-gradio/===
+hf_gradio-0.4.1.dist-info_licenses_LICENSE[SV3T]: F:保留hf-gradio的MIT许可与Gradio版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/httpcore/===
+httpcore-1.0.9.dist-info_licenses_LICENSE.md[SV3T]: F:保留GPU环境httpcore的BSD许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/httpx/===
+httpx-0.28.1.dist-info_licenses_LICENSE.md[SV3T]: F:保留GPU环境HTTPX的BSD授权与免责 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/huggingface_hub/===
+huggingface_hub-0.36.2.dist-info_licenses_LICENSE[SV3M]: F:保留GPU环境HuggingFace Hub的Apache2.0许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/idna/===
+idna-3.4.dist-info_LICENSE.md[SV3T]: F:保留GPU环境idna的BSD版权与许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/inflect/===
+inflect-7.5.0.dist-info_LICENSE[SV3T]: F:保留GPU环境inflect的MIT授权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/===
+inventory.json[FV5L]: F:记录可选GPU运行时包的版本、许可元数据、来源与notice路径 | R:code:scripts/collect_notices.py | A:name; version; license_expression; license_summary; sources; notices | S:收集快照不是合规结论；依赖版本独立于CPU环境
+
+===D:/AI/Speech/third-party/qwen/joblib/===
+joblib-1.6.0.dist-info_licenses_LICENSE.txt[SV3T]: F:保留GPU环境joblib的BSD三条款许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/lazy-loader/===
+lazy_loader-0.6.dist-info_licenses_LICENSE.md[SV3T]: F:保留lazy-loader的Scientific Python版权与BSD许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/librosa/===
+librosa-1.0.0.dist-info_licenses_LICENSE.md[SV3T]: F:保留librosa的ISC授权与开发团队版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/llvmlite/===
+llvmlite-0.50.0.dist-info_licenses_LICENSE[SV3T]: F:保留llvmlite的Anaconda版权与BSD许可 | R:- | A:- | S:-
+llvmlite-0.50.0.dist-info_licenses_LICENSE.thirdparty[SV4M]: F:保留llvmlite内LLVM代码的Apache2.0及LLVM例外条款 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/markdown-it-py/===
+markdown_it_py-4.2.0.dist-info_licenses_LICENSE[SV3T]: F:保留markdown-it-py的MIT授权与版权 | R:- | A:- | S:-
+markdown_it_py-4.2.0.dist-info_licenses_LICENSE.markdown-it[SV3T]: F:保留原始markdown-it代码的MIT许可与作者版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/mdurl/===
+mdurl-0.1.2.dist-info_LICENSE[SV3T]: F:保留mdurl及来源代码的MIT版权与授权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/more-itertools/===
+more_itertools-11.1.0.dist-info_licenses_LICENSE[SV3T]: F:保留GPU环境more-itertools的MIT许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/mpmath/===
+mpmath-1.3.0.dist-info_LICENSE[SV3T]: F:保留mpmath的BSD分发条件与贡献者版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/msgpack/===
+msgpack-1.2.3.dist-info_licenses_COPYING[SV3T]: F:保留msgpack的Apache2.0许可引用与作者版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/narwhals/===
+narwhals-2.26.0.dist-info_licenses_LICENSE.md[SV3T]: F:保留narwhals的MIT许可与Marco Gorelli版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/networkx/===
+networkx-3.6.1.dist-info_licenses_LICENSE.txt[SV3T]: F:保留NetworkX的BSD三条款及开发者版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/numba/===
+numba-0.68.0.dist-info_licenses_LICENSE[SV3T]: F:保留Numba的Anaconda版权与BSD许可 | R:- | A:- | S:-
+numba-0.68.0.dist-info_licenses_LICENSES.third-party[SV4L]: F:汇集Numba内置第三方库的独立版权及许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/numpy/===
+numpy-2.5.2.dist-info_licenses_LICENSE.txt[SV5L]: F:汇集GPU环境NumPy和所带OpenBLAS、LAPACK、GCC运行库许可 | R:code:THIRD_PARTY_NOTICES.md | A:- | S:GCC运行库使用GPL3附GCC-exception-3.1，不能将整包概括为BSD
+numpy-2.5.2.dist-info_licenses_numpy__core_include_numpy_libdivide_LICENSE.txt[SV3T]: F:保留GPU NumPy内libdivide的zlib授权 | R:- | A:- | S:-
+numpy-2.5.2.dist-info_licenses_numpy__core_src_common_pythoncapi-compat_COPYING[SV3T]: F:保留GPU NumPy内pythoncapi_compat的BSD零条款授权 | R:- | A:- | S:-
+numpy-2.5.2.dist-info_licenses_numpy__core_src_highway_LICENSE[SV4M]: F:记录GPU NumPy内Highway的Apache或BSD双许可及CC0例外 | R:- | A:- | S:random-inl.h单独适用CC0
+numpy-2.5.2.dist-info_licenses_numpy__core_src_multiarray_dragon4_LICENSE.txt[SV3T]: F:保留GPU NumPy内Dragon4的MIT许可 | R:- | A:- | S:作者从原始zlib另授权NumPy采用MIT
+numpy-2.5.2.dist-info_licenses_numpy__core_src_npysort_x86-simd-sort_LICENSE.md[SV3T]: F:保留GPU NumPy内Intel排序代码的BSD许可 | R:- | A:- | S:-
+numpy-2.5.2.dist-info_licenses_numpy__core_src_umath_svml_LICENSE[SV3T]: F:保留GPU NumPy内SVML代码版权与BSD条款 | R:- | A:- | S:-
+numpy-2.5.2.dist-info_licenses_numpy_fft_pocketfft_LICENSE.md[SV3T]: F:保留GPU NumPy内pocketfft的BSD许可 | R:- | A:- | S:-
+numpy-2.5.2.dist-info_licenses_numpy_linalg_lapack_lite_LICENSE.txt[SV3T]: F:保留GPU NumPy内LAPACK lite的机构版权与许可 | R:- | A:- | S:-
+numpy-2.5.2.dist-info_licenses_numpy_ma_LICENSE[SV3T]: F:保留GPU NumPy掩码数组代码的BSD条款 | R:- | A:- | S:-
+numpy-2.5.2.dist-info_licenses_numpy_random_LICENSE.md[SV3T]: F:保留GPU NumPy随机模块的NCSA与BSD双许可 | R:- | A:- | S:算法组件仍有独立许可
+numpy-2.5.2.dist-info_licenses_numpy_random_src_distributions_LICENSE.md[SV3T]: F:保留GPU NumPy随机分布实现的版权与许可 | R:- | A:- | S:-
+numpy-2.5.2.dist-info_licenses_numpy_random_src_mt19937_LICENSE.md[SV3T]: F:保留GPU NumPy内MT19937及来源代码版权许可 | R:- | A:- | S:-
+numpy-2.5.2.dist-info_licenses_numpy_random_src_pcg64_LICENSE.md[SV3T]: F:保留GPU NumPy内PCG64的MIT许可 | R:- | A:- | S:-
+numpy-2.5.2.dist-info_licenses_numpy_random_src_philox_LICENSE.md[SV3T]: F:保留GPU NumPy内Philox的BSD许可 | R:- | A:- | S:-
+numpy-2.5.2.dist-info_licenses_numpy_random_src_sfc64_LICENSE.md[SV3T]: F:保留GPU NumPy内SFC64的MIT许可 | R:- | A:- | S:-
+numpy-2.5.2.dist-info_licenses_numpy_random_src_splitmix64_LICENSE.md[SV3T]: F:保留GPU NumPy内SplitMix64的公有领域奉献与免责 | R:- | A:- | S:-
+numpy__core_include_numpy_random_LICENSE.txt[SV3T]: F:保留GPU包随机模块所附libdivide的zlib授权 | R:- | A:- | S:-
+numpy_ma_LICENSE[SV3T]: F:保留GPU包掩码数组代码的BSD许可 | R:- | A:- | S:-
+numpy_random_LICENSE.md[SV3T]: F:保留GPU包随机模块的NCSA与BSD双许可原文 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/onnxruntime/===
+onnxruntime_LICENSE[SV3T]: F:保留GPU环境ONNX Runtime的Microsoft版权与MIT许可 | R:- | A:- | S:-
+onnxruntime_ThirdPartyNotices.txt[SV5L]: F:汇集GPU环境ONNX Runtime所带第三方库的版权、授权和源码说明 | R:code:THIRD_PARTY_NOTICES.md | A:- | S:上游要求不翻译；各组件条款独立于ONNX Runtime的MIT
+
+===D:/AI/Speech/third-party/qwen/opentelemetry-api/===
+opentelemetry_api-1.45.0.dist-info_licenses_LICENSE[SV3M]: F:保留GPU环境OpenTelemetry API的Apache2.0许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/orjson/===
+orjson-3.12.0.dist-info_licenses_LICENSE-APACHE[SV3M]: F:保留orjson分发所附Apache2.0许可 | R:- | A:- | S:-
+orjson-3.12.0.dist-info_licenses_LICENSE-MIT[SV3T]: F:保留orjson分发所附MIT授权与免责文本 | R:- | A:- | S:-
+orjson-3.12.0.dist-info_licenses_LICENSE-MPL-2.0[SV4M]: F:保留orjson分发所带MPL2.0许可全文 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/packaging/===
+packaging-24.1.dist-info_LICENSE[SV3T]: F:声明GPU环境packaging的Apache或BSD可选双许可 | R:- | A:- | S:贡献同时适用两者
+packaging-24.1.dist-info_LICENSE.APACHE[SV3S]: F:保留GPU环境packaging的Apache2.0许可 | R:- | A:- | S:-
+packaging-24.1.dist-info_LICENSE.BSD[SV3T]: F:保留GPU环境packaging的BSD许可与版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/pandas/===
+pandas-3.0.6.dist-info_LICENSE[SV3T]: F:保留pandas的BSD三条款及原始贡献机构版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/pefile/===
+pefile-2024.8.26.dist-info_LICENSE[SV3T]: F:保留GPU环境pefile的MIT授权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/pillow/===
+pillow-12.3.0.dist-info_licenses_LICENSE[SV5L]: F:汇集PIL与Pillow的MIT-CMU授权和所带图像库的版权许可 | R:code:THIRD_PARTY_NOTICES.md | A:- | S:嵌入的压缩与图像库各有条款，不能只保留包装库许可
+
+===D:/AI/Speech/third-party/qwen/platformdirs/===
+platformdirs-4.12.2.dist-info_licenses_LICENSE[SV3T]: F:保留platformdirs的MIT许可及开发者版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/pooch/===
+pooch-1.9.0.dist-info_licenses_LICENSE.txt[SV3T]: F:保留Pooch的BSD授权与开发团队版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/protobuf/===
+protobuf-7.36.2.dist-info_LICENSE[SV3T]: F:保留GPU环境protobuf的Google版权与BSD许可 | R:- | A:- | S:生成代码归输入文件作者，支持库仍受本许可约束
+
+===D:/AI/Speech/third-party/qwen/psutil/===
+psutil-7.2.2.dist-info_LICENSE[SV3T]: F:保留GPU环境psutil的BSD许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/pycparser/===
+pycparser-3.0.dist-info_licenses_LICENSE[SV3T]: F:保留GPU环境pycparser的BSD版权与许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/pydantic/===
+pydantic-2.13.5.dist-info_licenses_LICENSE[SV3T]: F:保留GPU环境Pydantic的MIT授权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/pydantic_core/===
+pydantic_core-2.46.5.dist-info_licenses_LICENSE[SV3T]: F:保留GPU环境pydantic-core的MIT授权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/pydub/===
+pydub-0.25.1.dist-info_LICENSE[SV3T]: F:保留pydub的MIT授权与作者版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/pyinstaller-hooks-contrib/===
+pyinstaller_hooks_contrib-2026.8.dist-info_licenses_LICENSE[SV5L]: F:区分GPU构建普通hooks的GPL2和运行时hooks的Apache2.0许可 | R:code:scripts/build_qwen.ps1 | A:- | S:打包进入程序的rthooks使用Apache2.0
+
+===D:/AI/Speech/third-party/qwen/pyinstaller/===
+pyinstaller-6.22.3.dist-info_licenses_COPYING.txt[SV5L]: F:汇集GPU构建PyInstaller的GPL与bootloader例外、运行时Apache和isolated模块MIT条款 | R:code:scripts/build_qwen.ps1 | A:- | S:bootloader组合分发例外不免除单独分发和自身修改的GPL约束
+
+===D:/AI/Speech/third-party/qwen/pysbd/===
+pysbd-0.3.4.dist-info_LICENSE[SV3T]: F:保留GPU环境pysbd的MIT许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/python-dateutil/===
+python_dateutil-2.9.0.post0.dist-info_LICENSE[SV4T]: F:保留GPU环境dateutil的Apache与BSD授权及历史版权 | R:- | A:- | S:BSD适用于包括同时受Apache许可的全部代码
+
+===D:/AI/Speech/third-party/qwen/python-multipart/===
+python_multipart-0.0.32.dist-info_licenses_LICENSE.txt[SV3M]: F:保留GPU环境python-multipart的Apache2.0许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/pytz/===
+pytz-2026.4.dist-info_LICENSE.txt[SV3T]: F:保留pytz的MIT许可与Stuart Bishop版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/pywin32-ctypes/===
+pywin32_ctypes-0.2.3.dist-info_LICENSE.txt[SV3T]: F:保留GPU环境pywin32-ctypes的BSD许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/qwen-tts/===
+qwen_tts-0.1.1.dist-info_licenses_LICENSE[SV3M]: F:保留Qwen TTS Python库的Apache2.0许可全文 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/regex/===
+regex-2026.9.29.dist-info_licenses_LICENSE.txt[SV4M]: F:保留GPU环境regex的CPython来源与Apache增改代码许可 | R:- | A:- | S:原始re代码保留CNRI Python1.6来源说明
+
+===D:/AI/Speech/third-party/qwen/requests/===
+requests-2.28.1.dist-info_LICENSE[SV3S]: F:保留GPU环境Requests的Apache2.0许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/rich/===
+rich-15.0.0.dist-info_licenses_LICENSE[SV3T]: F:保留Rich的MIT许可与Will McGugan版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/safehttpx/===
+safehttpx-0.1.7.dist-info_licenses_LICENSE[SV3M]: F:保留safehttpx的Apache2.0许可全文 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/safetensors/===
+safetensors-0.8.0.dist-info_licenses_LICENSE[SV3M]: F:保留safetensors的Apache2.0许可全文 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/scikit-learn/===
+scikit_learn-1.9.1.dist-info_licenses_COPYING[SV5T]: F:保留scikit-learn的BSD版权和所带Visual C++运行库分发说明 | R:code:THIRD_PARTY_NOTICES.md | A:- | S:VC运行库不许修改，debug_nonredist目录不许分发
+sklearn_externals_array_api_compat_LICENSE[SV3T]: F:保留scikit-learn内array-api-compat的MIT许可 | R:- | A:- | S:-
+sklearn_externals_array_api_extra_LICENSE[SV3T]: F:保留scikit-learn内array-api-extra的MIT许可 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/scipy/===
+scipy-1.18.1.dist-info_LICENSE.txt[SV5L]: F:汇集GPU环境SciPy和所带OpenBLAS、LAPACK与GCC运行库授权 | R:code:THIRD_PARTY_NOTICES.md | A:- | S:GCC运行库含GPL3与GCC-exception-3.1，不能将整包概括为BSD
+scipy__lib__uarray_LICENSE[SV3T]: F:保留GPU环境SciPy内uarray的BSD许可 | R:- | A:- | S:-
+scipy_fft__duccfft_LICENSE.md[SV3T]: F:保留GPU环境SciPy内duccfft的BSD许可 | R:- | A:- | S:-
+scipy_integrate_LICENSE_DOP[SV3T]: F:保留GPU环境DOP积分代码的来源与许可 | R:- | A:- | S:-
+scipy_spatial_qhull_src_COPYING_QHULL.txt[SV3T]: F:保留GPU环境Qhull的版权、许可与免责文本 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/semantic-version/===
+semantic_version-2.10.0.dist-info_LICENSE[SV3T]: F:保留python-semanticversion的BSD许可与项目版权 | R:- | A:- | S:-
+
+===D:/AI/Speech/third-party/qwen/setuptools/===
+setuptools-78.1.0.dist-info_licenses_LICENSE[SV3T]: F:保留GPU环境setuptools的MIT授权 | R:- | A:- | S:-
+setuptools__vendor_autocommand-2.2.2.dist-info_LICENSE[SV4S]: F:保留GPU构建内置autocommand的LGPL3许可 | R:- | A:- | S:-
+setuptools__vendor_backports.tarfile-1.2.0.dist-info_LICENSE[SV3T]: F:保留GPU内置backports.tarfile的MIT许可 | R:- | A:- | S:-
+setuptools__vendor_importlib_metadata-8.0.0.dist-info_LICENSE[SV3M]: F:保留GPU内置importlib-metadata的Apache2.0许可 | R:- | A:- | S:-
+setuptools__vendor_inflect-7.3.1.dist-info_LICENSE[SV3T]: F:保留GPU内置inflect的MIT许可 | R:- | A:- | S:-
+setuptools__vendor_jaraco.collections-5.1.0.dist-info_LICENSE[SV3T]: F:保留GPU内置jaraco.collections的MIT授权 | R:- | A:- | S:-
+setuptools__vendor_jaraco.context-5.3.0.dist-info_LICENSE[SV3T]: F:保留GPU内置jaraco.context的MIT授权 | R:- | A:- | S:-
+setuptools__vendor_jaraco.functools-4.0.1.dist-info_LICENSE[SV3T]: F:保留GPU内置jaraco.functools的MIT授权 | R:- | A:- | S:-
+setuptools__vendor_jaraco.text-3.12.1.dist-info_LICENSE[SV3T]: F:保留GPU内置jaraco.text的MIT授权 | R:- | A:- | S:-
+setuptools__vendor_more_itertools-10.3.0.dist-info_LICENSE[SV3T]: F:保留GPU内置more-itertools的MIT许可 | R:- | A:- | S:-
+setuptools__vendor_packaging-24.2.dist-info_LICENSE[SV3T]: F:声明GPU内置packaging的Apache或BSD双许可 | R:- | A:- | S:贡献必须同时遵循两者
+setuptools__vendor_packaging-24.2.dist-info_LICENSE.APACHE[SV3S]: F:保留GPU内置packaging的Apache2.0条款 | R:- | A:- | S:-
+setuptools__vendor_packaging-24.2.dist-info_LICENSE.BSD[SV3T]: F:保留GPU内置packaging的BSD条款与版权 | R:- | A:- | S:-
+setuptools__vendor_platformdirs-4.2.2.dist-info_licenses_LICENSE[SV3T]: F:保留GPU内置platformdirs的MIT许可 | R:- | A:- | S:-
+setuptools__vendor_tomli-2.0.1.dist-info_LICENSE[SV3T]: F:保留GPU内置tomli的MIT授权 | R:- | A:- | S:-
+setuptools__vendor_typeguard-4.3.0.dist-info_LICENSE[SV3T]: F:保留GPU内置typeguard的MIT授权 | R:- | A:- | S:-
+setuptools__vendor_typing_extensions-4.12.2.dist-info_LICENSE[SV4M]: F:保留GPU内置typing-extensions的Python历史版权与许可 | R:- | A:- | S:-
+setuptools__vendor_wheel-0.45.1.dist-info_LICENSE.txt[SV3T]: F:保留GPU内置wheel的MIT许可与贡献者版权 | R:- | A:- | S:-
+setuptools__vendor_wheel_vendored_packaging_LICENSE[SV3T]: F:声明内置wheel所带packaging的Apache或BSD双许可 | R:- | A:- | S:贡献同时适用两项许可

@@ -1,6 +1,6 @@
-# Speech Practice
+# Oracy
 
-Speech Practice is an open-source Windows desktop app for practising spoken English with your own scripts. It is currently a **Public Beta**.
+Oracy is an open-source Windows desktop app for practising spoken English with your own scripts. It is currently a **Public Beta**.
 
 - **Download:** [Windows installer](../../releases/latest)
 - **Current platform:** Windows 11 x64 is the tested target
@@ -19,7 +19,7 @@ Speech Practice is an open-source Windows desktop app for practising spoken Engl
 
 ## Install on Windows
 
-1. Download the latest `Speech Practice Setup ...exe` from [Releases](https://github.com/OWNER/speech-practice/releases).
+1. Download the latest `Oracy Setup ...exe` from [Releases](https://github.com/OWNER/speech-practice/releases).
 2. Run the installer and choose an installation directory.
 3. Open **Models & settings** and download the models you want. The installer does not include model weights.
 4. Create a practice script, generate a reference reading, allow microphone access, and record.
