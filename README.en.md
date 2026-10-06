@@ -1,6 +1,6 @@
-# Speech Practice
+# ELOVERIS
 
-Speech Practice is an open-source Windows desktop app for practising spoken English with your own scripts. It is currently a **Public Beta**.
+ELOVERIS is an open-source Windows desktop app for practising spoken English with your own scripts. It is currently a **Public Beta**.
 
 - **Download:** [Windows installer](../../releases/latest)
 - **Tested target:** Windows 11 x64
@@ -19,7 +19,7 @@ Speech Practice is an open-source Windows desktop app for practising spoken Engl
 
 ## Windows installation
 
-1. Download the latest `Speech Practice Setup ...exe` from [Releases](../../releases).
+1. Download the latest `ELOVERIS Setup ...exe` from [Releases](../../releases).
 2. Run the installer.
 3. Open **Models & settings** and download the required models. Model weights are not bundled.
 4. Create a script, generate a reference reading, allow microphone access, and record.

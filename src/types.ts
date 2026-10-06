@@ -46,6 +46,7 @@ export interface Job {
   bytes_total?: number;
   result?: { asset_id?: string };
   payload?: { recording?: string };
+  recording_id?: string | null;
 }
 export interface Diff {
   type: string;
@@ -119,6 +120,7 @@ export interface Recording {
   duration: number;
   created_at: string;
   content_feedback?: {
+    created_at?: string;
     transcript: {
       text: string;
       uncertain: boolean;

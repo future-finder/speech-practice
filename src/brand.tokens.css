@@ -1,0 +1,51 @@
+/* Map these semantic tokens into the existing theme; no global reset. */
+:root {
+  --elv-brand: #2457d6;
+  --elv-brand-hover: #1c46b3;
+  --elv-brand-soft: #e6f0ff;
+  --elv-canvas: #f7f9fd;
+  --elv-surface: #ffffff;
+  --elv-ink: #172139;
+  --elv-text-secondary: #526482;
+  --elv-text-muted: #64748b;
+  --elv-border: #dce4f0;
+  --elv-control-border: #7b8ca6;
+  --elv-success: #087f5b;
+  --elv-warning: #b45309;
+  --elv-error: #b42318;
+  --elv-category-pace: #2364eb;
+  --elv-category-pronunciation: #7c3aed;
+  --elv-category-pause: #b45309;
+  --elv-category-expression: #be185d;
+  --elv-motion-fast: 120ms;
+  --elv-motion-press: 80ms;
+  --elv-motion-enter: 180ms;
+  --elv-motion-exit: 120ms;
+  --elv-motion-highlight: 160ms;
+  --elv-motion-complete: 220ms;
+  --elv-motion-busy: 1200ms;
+  --elv-motion-ease-enter: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --elv-motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --elv-focus: #2457d6;
+  --elv-radius-control: 12px;
+  --elv-radius-card: 20px;
+  --elv-radius-shell: 28px;
+}
+/* Opt-in adapter: map selector to the project's existing dark-theme attribute. */
+[data-elv-theme="dark"] {
+  --elv-canvas: #111827;
+  --elv-surface: #172139;
+  --elv-ink: #f7f9fd;
+  --elv-text-secondary: #cbd5e1;
+  --elv-text-muted: #94a3b8;
+  --elv-brand-soft: #1d3158;
+  --elv-control-border: #8290a7;
+  --elv-focus: #8cb4ff;
+  --elv-success: #65d8ad;
+  --elv-warning: #f4bf70;
+  --elv-error: #ff9e95;
+  --elv-category-pace: #93b5ff;
+  --elv-category-pronunciation: #c4aaff;
+  --elv-category-pause: #f4bf70;
+  --elv-category-expression: #f6a4d0;
+}

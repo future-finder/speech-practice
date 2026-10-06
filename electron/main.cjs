@@ -2,6 +2,9 @@ const { app, BrowserWindow, ipcMain, dialog, session } = require("electron");
 const { spawn, execFile } = require("node:child_process");
 const path = require("node:path");
 const fs = require("node:fs/promises");
+// Preserve the existing Chromium profile when changing the public product name.
+app.setPath("userData", path.join(app.getPath("appData"), "speech-practice"));
+app.setName("ELOVERIS");
 let backend, connection, win;
 
 async function startBackend() {
@@ -103,7 +106,7 @@ ipcMain.handle("choose-runtime", async (event) => {
   trusted(event);
   const result = await dialog.showOpenDialog(win, {
     properties: ["openFile"],
-    filters: [{ name: "Speech Practice component", extensions: ["zip"] }],
+    filters: [{ name: "ELOVERIS component", extensions: ["zip"] }],
   });
   return result.canceled ? null : result.filePaths[0];
 });
@@ -157,8 +160,9 @@ app.whenReady().then(async () => {
       height: 960,
       minWidth: 1050,
       minHeight: 700,
-      backgroundColor: "#f4f1e9",
-      title: "Speech Practice",
+      backgroundColor: "#F7F9FD",
+      title: "ELOVERIS",
+      icon: path.join(app.getAppPath(), "dist", "brand", "eloveris.ico"),
       autoHideMenuBar: true,
       webPreferences: {
         preload: path.join(__dirname, "preload.cjs"),
@@ -174,7 +178,7 @@ app.whenReady().then(async () => {
     await win.loadURL(connection.base + "/");
   } catch (error) {
     if (process.env.SPEECH_TEST_HIDDEN === "1") console.error(error.message);
-    else dialog.showErrorBox("Speech Practice", error.message);
+    else dialog.showErrorBox("ELOVERIS", error.message);
     app.quit();
   }
 });

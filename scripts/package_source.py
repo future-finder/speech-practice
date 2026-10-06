@@ -11,7 +11,7 @@ release.mkdir(exist_ok=True)
 files = ['.gitignore', 'AGENTS.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'README.md', 'README.en.md',
          'package.json', 'package-lock.json', 'pyproject.toml', 'uv.lock', 'requirements-qwen.lock',
          'start.bat', 'build.bat', 'index.html', 'vite.config.ts', 'tsconfig.json', 'playwright.config.ts']
-for folder in ['backend', 'src', 'electron', 'scripts', 'tests', 'docs', 'third-party', 'packaging']:
+for folder in ['backend', 'src', 'public', 'electron', 'scripts', 'tests', 'docs', 'third-party', 'packaging']:
     files.extend(str(p.relative_to(root)) for p in (root / folder).rglob('*')
                  if p.is_file() and '__pycache__' not in p.parts and p.suffix != '.pyc')
 version = json.loads((root/'package.json').read_text('utf8'))['version']
@@ -30,7 +30,7 @@ with zipfile.ZipFile(component) as bundle:
     runtime = json.loads(bundle.read('component.json'))
     if runtime.get('protocol') != 1 or not {'qwen-tts', 'gpu-asr'}.issubset(runtime.get('capabilities', [])):
         raise ValueError('The GPU component is not compatible with this release.')
-for name in [f'Speech Practice Setup {version}.exe', component.name, archive.name]:
+for name in [f'ELOVERIS Setup {version}.exe', component.name, archive.name]:
     path = release / name
     digest = hashlib.sha256()
     with path.open('rb') as file:

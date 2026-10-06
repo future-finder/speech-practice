@@ -214,7 +214,10 @@ def create_app(root=None, token=None):
 
     @app.get("/api/jobs")
     def list_jobs():
-        return [{k: v for k, v in job.items() if k != "payload"} for job in store.list("job")[:100]]
+        # Expose the recording association needed by the studio, not the full payload.
+        return [{**{k: v for k, v in job.items() if k != "payload"},
+                 "recording_id": job.get("payload", {}).get("recording")}
+                for job in store.list("job")[:100]]
 
     @app.get("/api/jobs/{id}")
     def get_job(id: str):

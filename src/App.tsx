@@ -19,6 +19,8 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import { Brand } from "./Brand";
+import { RecordingWaveform } from "./RecordingWaveform";
 import { FeedbackPanel } from "./FeedbackPanel";
 import { ProviderSettings } from "./ProviderSettings";
 import { modelDescription } from "./modelInfo";
@@ -74,6 +76,16 @@ export default function App() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(
+    () => localStorage.getItem("sidebar-collapsed") === "true",
+  );
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("theme") || "system",
+  );
+  const [reducedMotion, setReducedMotion] = useState(
+    () => localStorage.getItem("reduced-motion") === "true",
+  );
   const [newOpen, setNewOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [script, setScript] = useState("");
@@ -103,6 +115,70 @@ export default function App() {
   const activeJobs = jobs.filter((j) =>
     ["queued", "running"].includes(j.status),
   );
+
+  const analysisJobs = jobs.filter(
+    (j) =>
+      (j.recording_id || j.payload?.recording) === take?.id &&
+      ["analyze", "assess"].includes(j.action),
+  );
+  const analyzing = analysisJobs.some((j) =>
+    ["queued", "running"].includes(j.status),
+  );
+  const failedAnalysis =
+    analysisJobs[0]?.status === "failed" ? analysisJobs[0] : undefined;
+  useEffect(() => {
+    const system = matchMedia("(prefers-color-scheme: dark)");
+    const apply = () => {
+      document.documentElement.dataset.elvTheme =
+        theme === "system" ? (system.matches ? "dark" : "light") : theme;
+    };
+    apply();
+    system.addEventListener("change", apply);
+    localStorage.setItem("theme", theme);
+    return () => system.removeEventListener("change", apply);
+  }, [theme]);
+  useEffect(() => {
+    document.documentElement.dataset.elvReducedMotion = String(reducedMotion);
+    localStorage.setItem("reduced-motion", String(reducedMotion));
+  }, [reducedMotion]);
+  useEffect(() => {
+    document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+  }, [lang]);
+  useEffect(() => {
+    if (!settingsOpen && !newOpen && !aboutOpen) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const dialog = document.querySelector<HTMLElement>(".modal");
+    const controls = () =>
+      Array.from(
+        dialog?.querySelectorAll<HTMLElement>(
+          'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), summary, [tabindex="0"]',
+        ) || [],
+      ).filter((el) => el.getClientRects().length);
+    controls()[0]?.focus();
+    const keydown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSettingsOpen(false);
+        setNewOpen(false);
+        setAboutOpen(false);
+      }
+      if (event.key !== "Tab") return;
+      const items = controls(),
+        first = items[0],
+        last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
+    };
+    document.addEventListener("keydown", keydown);
+    return () => {
+      document.removeEventListener("keydown", keydown);
+      previous?.focus();
+    };
+  }, [settingsOpen, newOpen, aboutOpen]);
 
   const api = useCallback(
     async <T,>(path: string, method = "GET", body?: unknown): Promise<T> => {
@@ -300,6 +376,7 @@ export default function App() {
   }
   async function startRecording() {
     if (!sentence || recording || uploading) return;
+    setNotice("");
     const snapshot = await saveSentence();
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     micStream.current = stream;
@@ -346,9 +423,16 @@ export default function App() {
         );
         setSelectedRecording(saved.id);
         await refresh();
-        setNotice(t("录音已保存。", "Recording saved."));
+        setNotice(t("这次练习已保存。", "Recording saved."));
       } catch (e) {
-        setError(String(e));
+        setError(
+          t(
+            "保存失败，本次录音仍可在下方回听或下载；请保存副本后重试。",
+            "Save failed. Replay or download the latest recording below before retrying.",
+          ) +
+            " " +
+            String(e),
+        );
       } finally {
         setUploading(false);
       }
@@ -378,12 +462,27 @@ export default function App() {
 
   return (
     <div className="app">
-      <aside className="sidebar">
+      <aside className={`sidebar ${collapsed ? "collapsed" : ""}`}>
         <div className="brand">
-          <AudioLines size={28} />
-          <div>Speech Practice</div>
+          <Brand compact={collapsed} />
         </div>
         <button
+          className="plain sidebar-toggle"
+          aria-label={
+            collapsed
+              ? t("展开侧栏", "Expand sidebar")
+              : t("折叠侧栏", "Collapse sidebar")
+          }
+          aria-expanded={!collapsed}
+          onClick={() => {
+            setCollapsed(!collapsed);
+            localStorage.setItem("sidebar-collapsed", String(!collapsed));
+          }}
+        >
+          {collapsed ? <ArrowRight size={16} /> : <ArrowLeft size={16} />}
+        </button>
+        <button
+          aria-label={t("新建演讲稿", "New speech")}
           className="new-button"
           onClick={() => {
             setNewOpen(true);
@@ -392,7 +491,7 @@ export default function App() {
           }}
         >
           <Plus size={17} />
-          {t("新建演讲稿", "New speech")}
+          <span className="sidebar-copy">{t("新建演讲稿", "New speech")}</span>
         </button>
         <div className="sidebar-label">
           {t("稿件", "Speeches")}
@@ -402,10 +501,12 @@ export default function App() {
           {sessions.map((item) => (
             <button
               className={`session-link ${session?.id === item.id ? "active" : ""}`}
+              title={item.title}
+              aria-label={item.title}
               key={item.id}
               onClick={() => run(() => openSession(item))}
             >
-              <span>{item.title}</span>
+              {collapsed ? <Folder size={18} /> : <span>{item.title}</span>}
               <small>
                 {item.sentence_ids.length} {t("个练习句", "sentences")}
               </small>
@@ -414,9 +515,25 @@ export default function App() {
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <button className="plain" onClick={() => setSettingsOpen(true)}>
+          <button
+            className="plain"
+            aria-label={t("模型与设置", "Models & settings")}
+            onClick={() => setSettingsOpen(true)}
+          >
             <Settings2 size={16} />
-            {t("模型与设置", "Models & settings")}
+            <span className="sidebar-copy">
+              {t("模型与设置", "Models & settings")}
+            </span>
+          </button>
+          <button
+            className="plain"
+            aria-label={t("关于 ELOVERIS", "About ELOVERIS")}
+            onClick={() => setAboutOpen(true)}
+          >
+            <CircleHelp size={16} />
+            <span className="sidebar-copy">
+              {t("关于 ELOVERIS", "About ELOVERIS")}
+            </span>
           </button>
         </div>
       </aside>
@@ -460,7 +577,7 @@ export default function App() {
           </div>
         )}
         {notice && (
-          <div className="alert notice" role="status">
+          <div className="alert notice elv-complete" role="status">
             {notice}
             <button
               aria-label={t("关闭", "Close")}
@@ -472,6 +589,13 @@ export default function App() {
         )}
         {!session ? (
           <section className="welcome">
+            <Brand />
+            <p className="brand-promise">
+              {t(
+                "让表达更清晰、更自在",
+                "Express yourself with clarity and ease",
+              )}
+            </p>
             <h1>{t("口语练习", "Speech practice")}</h1>
             <p>
               {t(
@@ -859,11 +983,18 @@ export default function App() {
                             : t("开始录音", "Start recording")}
                       </span>
                     </button>
-                    <div className="record-hint">
+                    <div className="record-hint" role="status">
                       {recording ? (
                         <>
-                          <span className="pulse" />
-                          {Math.floor(seconds / 60)}:
+                          <RecordingWaveform
+                            stream={micStream.current}
+                            reducedMotion={reducedMotion}
+                          />
+                          {t(
+                            "正在聆听 · 点击结束",
+                            "Listening · stop when ready",
+                          )}{" "}
+                          · {Math.floor(seconds / 60)}:
                           {String(seconds % 60).padStart(2, "0")}
                         </>
                       ) : uploading ? (
@@ -880,6 +1011,12 @@ export default function App() {
                     <div className="immediate">
                       <small>{t("本次录音", "Latest recording")}</small>
                       <audio controls src={preview} />
+                      <a href={preview} download="eloveris-recording.webm">
+                        {t(
+                          "下载本次录音副本",
+                          "Download latest recording copy",
+                        )}
+                      </a>
                     </div>
                   )}
                   {take && (
@@ -1027,7 +1164,10 @@ export default function App() {
                         )}
                       </div>
                       {take.content_feedback && (
-                        <section className="feedback">
+                        <section
+                          className="feedback elv-enter"
+                          key={take.content_feedback.created_at}
+                        >
                           <h3>{t("识别文本差异", "Transcript differences")}</h3>
                           <small>
                             {take.content_feedback.transcript.provider ||
@@ -1120,7 +1260,22 @@ export default function App() {
                           )}
                         </section>
                       )}
+                      {analyzing && (
+                        <p className="analysis-status" role="status">
+                          <span className="elv-busy-dot" />
+                          {t("正在整理反馈", "Preparing feedback")}
+                        </p>
+                      )}
+                      {!analyzing && failedAnalysis && (
+                        <p className="analysis-error" role="status">
+                          {t(
+                            "分析失败，已保存的录音仍可回听。请重试分析。",
+                            "Analysis failed. Your saved recording is available; retry analysis.",
+                          )}
+                        </p>
+                      )}
                       <FeedbackPanel
+                        key={`${take.id}-${take.pronunciation_feedback?.id || ""}`}
                         record={take}
                         lang={lang}
                         play={playSegment}
@@ -1142,7 +1297,9 @@ export default function App() {
             </div>
             {jobs.slice(0, 5).map((job) => (
               <div className={`job ${job.status}`} key={job.id}>
-                <span className="job-dot" />
+                <span
+                  className={`job-dot ${["queued", "running"].includes(job.status) ? "elv-busy-dot" : ""}`}
+                />
                 <strong>
                   {t(
                     {
@@ -1288,6 +1445,38 @@ export default function App() {
           </section>
         </div>
       )}
+      {aboutOpen && (
+        <div className="modal-backdrop">
+          <section
+            className="modal about-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label={t("关于 ELOVERIS", "About ELOVERIS")}
+          >
+            <button
+              className="modal-close icon-button"
+              aria-label={t("关闭", "Close")}
+              onClick={() => setAboutOpen(false)}
+            >
+              <X />
+            </button>
+            <Brand />
+            <h2>
+              {t(
+                "让表达更清晰、更自在",
+                "Express yourself with clarity and ease",
+              )}
+            </h2>
+            <p>
+              {t(
+                "通过朗读、回听和具体反馈，让每一次练习都能继续向前。",
+                "Move forward with each practice through reading, replay and actionable feedback.",
+              )}
+            </p>
+            <p>ELOVERIS · v0.2.1</p>
+          </section>
+        </div>
+      )}
       {settingsOpen && (
         <div className="modal-backdrop">
           <section
@@ -1304,6 +1493,28 @@ export default function App() {
               <X />
             </button>
             <h2>{t("模型与设置", "Models & settings")}</h2>
+            <div className="appearance-settings">
+              <label>
+                {t("外观", "Appearance")}
+                <select
+                  aria-label={t("外观", "Appearance")}
+                  value={theme}
+                  onChange={(e) => setTheme(e.target.value)}
+                >
+                  <option value="system">{t("跟随系统", "System")}</option>
+                  <option value="light">{t("浅色", "Light")}</option>
+                  <option value="dark">{t("深色", "Dark")}</option>
+                </select>
+              </label>
+              <label className="motion-setting">
+                <input
+                  type="checkbox"
+                  checked={reducedMotion}
+                  onChange={(e) => setReducedMotion(e.target.checked)}
+                />
+                {t("减少动态效果", "Reduce motion")}
+              </label>
+            </div>
             {error && (
               <div className="alert error" role="alert">
                 {error}

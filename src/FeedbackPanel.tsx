@@ -32,7 +32,10 @@ export function FeedbackPanel({
       ? JSON.stringify(result.error)
       : result.error;
   return (
-    <section className="feedback assessment-panel">
+    <section
+      className="feedback assessment-panel elv-enter"
+      aria-label={t("练习反馈", "Practice feedback")}
+    >
       <h3>{t("发音评测", "Pronunciation assessment")}</h3>
       {!!history.length && (
         <label>
@@ -108,7 +111,11 @@ export function FeedbackPanel({
           <p>{t("暂无可用练习项。", "No practice items available.")}</p>
         )}
         {(result.issues || []).map((i) => (
-          <article className={`issue ${i.severity}`} key={i.id}>
+          <article
+            className={`issue ${i.severity}`}
+            data-category={i.category}
+            key={i.id}
+          >
             <b>
               {t(
                 { minor: "轻微", moderate: "中等", major: "重点" }[

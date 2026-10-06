@@ -17,7 +17,7 @@ async function main() {
   );
   const executable =
     process.env.SPEECH_TEST_EXE ||
-    path.resolve("release/win-unpacked/Speech Practice.exe");
+    path.resolve("release/win-unpacked/ELOVERIS.exe");
   const application = await electron.launch({
     executablePath: executable,
     args: [

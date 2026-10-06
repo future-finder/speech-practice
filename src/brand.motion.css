@@ -1,0 +1,98 @@
+/* Optional classes. Import tokens first. Bind to actual product states. */
+.elv-action {
+  transition:
+    background-color var(--elv-motion-fast),
+    transform var(--elv-motion-press);
+}
+.elv-action:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.elv-action:focus-visible {
+  outline: 2px solid var(--elv-focus);
+  outline-offset: 3px;
+}
+.elv-enter {
+  animation: elv-enter var(--elv-motion-enter) var(--elv-motion-ease-enter) both;
+}
+.elv-exit {
+  animation: elv-exit var(--elv-motion-exit) var(--elv-motion-ease-exit) both;
+}
+.elv-highlight {
+  transition: background-color var(--elv-motion-highlight);
+}
+.elv-complete {
+  animation: elv-complete var(--elv-motion-complete)
+    var(--elv-motion-ease-enter) both;
+}
+.elv-busy-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: elv-busy var(--elv-motion-busy) ease-in-out infinite;
+}
+@keyframes elv-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes elv-exit {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes elv-complete {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes elv-busy {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+/* Application setting; add data-elv-reduced-motion to a common ancestor. */
+[data-elv-reduced-motion="true"]
+  :is(
+    .elv-action,
+    .elv-enter,
+    .elv-exit,
+    .elv-highlight,
+    .elv-complete,
+    .elv-busy-dot
+  ) {
+  animation: none;
+  transition: none;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(
+    .elv-action,
+    .elv-enter,
+    .elv-exit,
+    .elv-highlight,
+    .elv-complete,
+    .elv-busy-dot
+  ) {
+    animation: none;
+    transition: none;
+    transform: none;
+  }
+}
+/* Exit elements must also be hidden/unmounted by application state. */

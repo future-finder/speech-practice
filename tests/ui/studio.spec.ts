@@ -408,3 +408,195 @@ test("optional models explain choices and preserve supported settings", async ({
     fullPage: true,
   });
 });
+
+test("ELOVERIS: themes, compact brand, focus, reduced motion and real recording analysis", async ({
+  page,
+  context,
+  request,
+}) => {
+  const auth = { Authorization: `Bearer ${token}` };
+  const models =
+    process.env.SPEECH_TEST_MODELS ||
+    path.join(process.env.LOCALAPPDATA!, "speech-practice", "models");
+  const ready = fs.existsSync(path.join(models, "whisper", ".verified.json"));
+  const session = await (
+    await request.post(`${base}/api/sessions`, {
+      headers: auth,
+      data: {
+        title: "ELOVERIS 品牌验收",
+        text: "Every meaningful change begins with a small decision.",
+      },
+    })
+  ).json();
+  await request.patch(`${base}/api/settings`, {
+    headers: auth,
+    data: {
+      model_dir: models,
+      asr_provider: "local",
+      asr_model: "whisper",
+      asr_device: "cpu",
+    },
+  });
+  await page.addInitScript((id) => {
+    localStorage.setItem("language", "zh");
+    localStorage.setItem("session", id);
+    localStorage.setItem("theme", "light");
+  }, session.id);
+  await context.grantPermissions(["microphone"], { origin: base });
+  await page.goto(`${base}/#token=${token}`);
+  await expect(page).toHaveTitle("ELOVERIS");
+  await expect(
+    page.getByRole("heading", { name: "ELOVERIS 品牌验收" }),
+  ).toBeVisible();
+  await expect(page.locator(".brand-light").first()).toBeVisible();
+  const logo = page.locator(".brand-light").first();
+  expect(
+    await logo.evaluate(
+      (el: HTMLImageElement) => el.complete && el.naturalWidth > 0,
+    ),
+  ).toBeTruthy();
+  await page.screenshot({
+    path: "docs/evidence/brand/light-expanded.png",
+    fullPage: true,
+  });
+  const collapse = page.getByRole("button", { name: "折叠侧栏" });
+  await collapse.focus();
+  expect(
+    await collapse.evaluate((el) => getComputedStyle(el).outlineStyle),
+  ).toBe("solid");
+  await collapse.press("Enter");
+  await expect(page.locator(".brand-art.compact")).toBeVisible();
+  await page.screenshot({
+    path: "docs/evidence/brand/light-collapsed-focus.png",
+    fullPage: true,
+  });
+  await page.getByRole("button", { name: "设置", exact: true }).click();
+  await page.getByLabel("外观", { exact: true }).selectOption("dark");
+  await page.getByLabel("减少动态效果", { exact: true }).check();
+  await page.keyboard.press("Escape");
+  await expect(page.locator("html")).toHaveAttribute("data-elv-theme", "dark");
+  await expect(page.locator(".brand-dark").first()).toBeVisible();
+  await page.getByRole("button", { name: "展开侧栏" }).click();
+  await page.screenshot({
+    path: "docs/evidence/brand/dark-expanded.png",
+    fullPage: true,
+  });
+  await page.getByRole("button", { name: "关于 ELOVERIS" }).click();
+  await expect(page.getByRole("dialog")).toContainText("让表达更清晰、更自在");
+  expect(
+    await page
+      .locator(".modal")
+      .evaluate((el) => getComputedStyle(el).animationName),
+  ).toBe("none");
+  await page.screenshot({
+    path: "docs/evidence/brand/about-dark.png",
+    fullPage: true,
+  });
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "开始录音", exact: true }).click();
+  await expect(page.locator(".record-waveform")).toBeVisible();
+  await expect(page.locator(".record-hint")).toContainText("正在聆听");
+  await page.waitForTimeout(1600);
+  await page.getByRole("button", { name: "停止录音", exact: true }).click();
+  await expect(
+    page.getByText("这次练习已保存。", { exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "检查识别差异", exact: true }).click();
+  await expect(page.locator(".analysis-status")).toContainText("正在整理反馈");
+  expect(
+    await page
+      .locator(".elv-busy-dot")
+      .first()
+      .evaluate((el) => getComputedStyle(el).animationName),
+  ).toBe("none");
+  await page.screenshot({
+    path: "docs/evidence/brand/analysis-reduced-motion.png",
+    fullPage: true,
+  });
+  if (ready) {
+    await expect(page.locator(".record-card .feedback")).toBeVisible({
+      timeout: 100000,
+    });
+    await expect(page.locator(".analysis-status")).toHaveCount(0);
+    await page.screenshot({
+      path: "docs/evidence/brand/real-feedback-dark.png",
+      fullPage: true,
+    });
+    const rows = await (
+      await request.get(`${base}/api/sessions/${session.id}/recordings`, {
+        headers: auth,
+      })
+    ).json();
+    expect(rows[0].content_feedback.transcript.model).toBe("whisper");
+    const jobs = await (
+      await request.get(`${base}/api/jobs`, { headers: auth })
+    ).json();
+    expect(
+      jobs.find((j: { recording_id: string }) => j.recording_id === rows[0].id)
+        .status,
+    ).toBe("completed");
+    expect(
+      jobs.every((j: Record<string, unknown>) => !("payload" in j)),
+    ).toBeTruthy();
+  } else {
+    await expect(page.locator(".analysis-error")).toContainText(
+      "已保存的录音仍可回听",
+    );
+    test
+      .info()
+      .annotations.push({
+        type: "limitation",
+        description:
+          "Local Whisper model unavailable; verified real analysis failure and retained recording.",
+      });
+  }
+  await page.getByRole("button", { name: "设置", exact: true }).click();
+  await page.getByLabel("减少动态效果", { exact: true }).uncheck();
+  await page.getByLabel("外观", { exact: true }).selectOption("system");
+  await page.keyboard.press("Escape");
+  await page.emulateMedia({
+    colorScheme: "light",
+    reducedMotion: "no-preference",
+  });
+  await expect(page.locator("html")).toHaveAttribute("data-elv-theme", "light");
+  await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
+  await expect(page.locator("html")).toHaveAttribute("data-elv-theme", "dark");
+  await page.getByRole("button", { name: "关于 ELOVERIS" }).click();
+  expect(
+    await page
+      .locator(".modal")
+      .evaluate((el) => getComputedStyle(el).animationName),
+  ).toBe("none");
+  await page.keyboard.press("Escape");
+  await page.evaluate(() => {
+    const strip = document.createElement("div");
+    strip.id = "icon-verification";
+    strip.style.cssText =
+      "position:fixed;inset:30px auto auto 350px;padding:24px;background:#F7F9FD;color:#172139;z-index:50;display:flex;gap:24px;align-items:center";
+    for (const size of [16, 24, 32, 48]) {
+      const cell = document.createElement("div"),
+        img = document.createElement("img");
+      img.src = `/brand/eloveris-app-icon-${size}.png`;
+      img.width = size;
+      img.height = size;
+      cell.append(`${size}px `, img);
+      strip.append(cell);
+    }
+    document.body.append(strip);
+  });
+  await expect
+    .poll(() =>
+      page
+        .locator("#icon-verification img")
+        .evaluateAll((imgs) =>
+          imgs.every((img) => (img as HTMLImageElement).naturalWidth > 0),
+        ),
+    )
+    .toBeTruthy();
+  await page
+    .locator("#icon-verification")
+    .screenshot({ path: "docs/evidence/brand/icons-actual-size.png" });
+  await page.evaluate(() =>
+    document.getElementById("icon-verification")?.remove(),
+  );
+});
